@@ -43,17 +43,17 @@ Lista Preferencias
 %%
 programa : PRINCIPAL bloque;
 
-bloque : inicio_de_bloque   
+bloque : LLAVEIZQ   
         | declar_de_variable_locales    
         | declar_de_fun     
         | sentencias        
         | sentencia_return  
-        | fin_de_bloque     
+        | LLAVEDER     
         ;
     
-inicio_de_bloque : LLAVEIZQ ;
+/*inicio_de_bloque : LLAVEIZQ ;
 
-fin_de_bloque : LLAVEDER ;
+fin_de_bloque : LLAVEDER ;*/
 
 declar_de_variable_locales : TIPO  declaracion_v PYC
                             | 
@@ -63,11 +63,9 @@ declaracion_v : IDEN
                 | IDEN COMA declaracion_v
                 ;
 
-declar_de_fun : declar_de_fun declaracion_f
+declar_de_fun : declar_de_fun TIPO IDEN PARIZQ argumentos PARDER bloque
                 | 
                 ;
-
-declaracion_f : TIPO IDEN PARIZQ argumentos PARDER bloque ;
 
 sentencias :  sentencias sentencia 
             | sentencia
