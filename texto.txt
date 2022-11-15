@@ -1,0 +1,21 @@
+principal {
+
+	real ad23 = 43.9;
+	ent i;
+	car dd = 'c';
+	booleano ss = verdadero;
+	
+	int max(int a, int b){
+		si(a > b)
+			devolver a;
+		sino
+			devolver b;
+	}
+	
+	para(i = 0, i < 5, i + 1){
+		salida "numero";
+		salida i;
+	}
+	
+	devolver 0;
+}
