@@ -59,8 +59,7 @@ bloque : declar_de_variable_locales bloque
 
 fin_de_bloque : LLAVEDER ;*/
 
-declar_de_variable_locales : TIPO  declaracion_v PYC
-                            ;
+declar_de_variable_locales : declar_de_variable_locales TIPO  declaracion_v PYC;
                 
 declaracion_v : IDEN 
                 | IDEN COMA declaracion_v
