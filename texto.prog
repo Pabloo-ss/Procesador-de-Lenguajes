@@ -1,20 +1,22 @@
 principal {
-
 	real ad23 = 43.9;
 	ent i;
 	car dd = 'c';
 	booleano ss = verdadero;
 	
-	int max(int a, int b){
-		si(a > b)
+	ent max (ent a, ent b){
+		si a > b {
 			devolver a;
-		sino
+		}
+		sino {
 			devolver b;
+		}
+		devolver 0;
 	}
 	
-	para(i = 0, i < 5, i + 1){
-		salida "numero";
-		salida i;
+	para(i = 0; i < 5; i + 1){
+		salida ("numero");
+		salida (i);
 	}
 	
 	devolver 0;

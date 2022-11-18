@@ -45,29 +45,29 @@ Lista Preferencias
 
 
 %%
-programa : PRINCIPAL bloque;
+programa : PRINCIPAL inicio_de_bloque;
 
-bloque : LLAVEIZQ   
-        | declar_de_variable_locales    
-        | declar_de_fun     
-        | sentencias        
-        | sentencia_return  
-        | LLAVEDER     
+inicio_de_bloque : LLAVEIZQ bloque ;
+
+bloque : declar_de_variable_locales bloque
+        | declar_de_fun bloque
+        | sentencia bloque
+        | sentencia_return LLAVEDER     
         ;
     
-/*inicio_de_bloque : LLAVEIZQ ;
+/*
 
 fin_de_bloque : LLAVEDER ;*/
 
 declar_de_variable_locales : TIPO  declaracion_v PYC
-                            | 
                             ;
                 
-declaracion_v : IDEN
+declaracion_v : IDEN 
                 | IDEN COMA declaracion_v
+                | IDEN ASIG CONS
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER bloque
+declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque
                 ;
 
 sentencias :  sentencias sentencia 
@@ -82,6 +82,7 @@ sentencia : sentencia_asignacion
             | llamada_func
             | sentencia_for
             | tipo_variable_complejo
+            | sentencia_return
             ;
 
 sentencia_asignacion : IDEN ASIG expresion PYC ;
@@ -98,11 +99,11 @@ sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion expresion PYC expresion PARDER LLAVEIZQ sentencias LLAVEDER ;
 
-sentencia_return : DEVOLVER IDEN
-                | DEVOLVER CONS
+sentencia_return : DEVOLVER IDEN PYC
+                | DEVOLVER CONS PYC
                 ;
 
-llamada_func : IDEN PARIZQ expresion PYC ;
+llamada_func : IDEN PARIZQ expresion PARDER PYC ;
 
 lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion

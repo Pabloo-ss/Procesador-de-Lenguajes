@@ -3,7 +3,7 @@
 
 letra	[a-z]
 digito	[0-9]
-otros	<*>.|\n 
+otros	.|\n
 %%
 ")"						                                    return PARDER;
 "("						                                    return PARIZQ;
