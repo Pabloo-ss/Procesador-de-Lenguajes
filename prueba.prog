@@ -4,7 +4,7 @@ principal{
     real vf ;
     car vc ;
     booleano vb ;
-    lista ent
+    ent lista[4]  l1 =[3,4,6,1];
 
 
     ent funcionA (ent e1, real r2, car c3){

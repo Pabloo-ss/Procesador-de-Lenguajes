@@ -126,7 +126,7 @@ expresion    : expresion OPERADORBIN expresion
             | llamada_func
             ;
 
-tipo_variable_complejo : LISTA CONS TIPO IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;
 
 /*decl_tipo_comp : decl_tipo_comp_ent
             | decl_tipo_comp_real
