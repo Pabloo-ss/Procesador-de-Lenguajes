@@ -29,15 +29,19 @@ Lista Tokens
 /*
 Lista Preferencias
 */
+%left OPERADORBIN
+%right OPERADORUNARIO
+%left MENOS
+%right CONDFOR
+%right SALIDA
+%right ENTRADA
 %left PARDER
 %right PARIZQ
 %left CORDER
-%right CORIZQ
+%left CORIZQ
 %left LLAVEDER
 %right LLAVEIZQ
-%right OPERADORBIN
-%left MENOS
-%right CONDFOR
+
 
 
 %%
@@ -63,12 +67,11 @@ declaracion_v : IDEN
                 | IDEN COMA declaracion_v
                 ;
 
-declar_de_fun : declar_de_fun TIPO IDEN PARIZQ argumentos PARDER bloque
-                | 
+declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER bloque
                 ;
 
 sentencias :  sentencias sentencia 
-            | sentencia
+            | 
             ;
 
 sentencia : sentencia_asignacion
@@ -79,7 +82,6 @@ sentencia : sentencia_asignacion
             | llamada_func
             | sentencia_for
             | tipo_variable_complejo
-            |
             ;
 
 sentencia_asignacion : IDEN ASIG expresion PYC ;
