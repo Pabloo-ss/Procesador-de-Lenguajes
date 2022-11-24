@@ -42,7 +42,7 @@ Lista Preferencias
 %left LLAVEDER
 %right LLAVEIZQ
 
-
+//Solo se acepta un argumento en la funcion
 
 %%
 programa : PRINCIPAL inicio_de_bloque;
@@ -123,6 +123,7 @@ expresion    : expresion OPERADORBIN expresion
             | MENOS CONS
             | PARIZQ expresion PARDER
             | OPERADORUNARIO expresion
+            | expresion MENOS expresion
             | llamada_func
             ;
 

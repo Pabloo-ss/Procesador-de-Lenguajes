@@ -18,8 +18,8 @@ todo:
 	make --no-print-directory prueba
 
 # Test
-test_programita: todo
-	./trad < ./texto.prog
+test: todo
+	./trad < ./prueba.prog
 
 test_sintactico: todo
 	./tad < ./errores_sintacticos.txt

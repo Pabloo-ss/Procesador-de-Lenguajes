@@ -1,7 +1,7 @@
 %option yylineno
 %option noyywrap
 
-letra	[a-z]
+letra	[a-zA-Z]
 digito	[0-9]
 otros	[\n\t ]
 %%
