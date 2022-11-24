@@ -3,7 +3,7 @@
 
 letra	[a-z]
 digito	[0-9]
-otros	.|\n
+otros	[\n\t ]
 %%
 ")"						                                    return PARDER;
 "("						                                    return PARIZQ;
@@ -30,7 +30,8 @@ otros	.|\n
 {letra}({letra}|{digito})*			                        return IDEN;
 ";"						                                    return PYC;
 "="						                                    return ASIG;
-{otros}					                	                {printf("Error en la línea %d. Lexema %s no reconocible.\n", yylineno, yytext);};
+{otros}		
+.			                	                {printf("Error en la línea %d. Lexema %s no reconocible.\n", yylineno, yytext);};
 
 %%
 
