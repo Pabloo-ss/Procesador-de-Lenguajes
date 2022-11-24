@@ -59,11 +59,14 @@ bloque : declar_de_variable_locales bloque
 
 fin_de_bloque : LLAVEDER ;*/
 
-declar_de_variable_locales :  TIPO  declaracion_v PYC;
+declar_de_variable_locales :  TIPO  declaracion_v PYC
+		| error IDEN
+		| error PYC
+		;
                 
 declaracion_v : IDEN 
                 | IDEN COMA declaracion_v
-                | IDEN ASIG CONS
+                | IDEN ASIG CONS               
                 ;
 
 declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque
@@ -78,7 +81,7 @@ sentencia : sentencia_asignacion
             | sentencia_while
             | sentencia_entrada
             | sentencia_salida
-            | llamada_func
+            | llamada_func PYC
             | sentencia_for
             | tipo_variable_complejo
             | sentencia_return
@@ -102,7 +105,8 @@ sentencia_return : DEVOLVER IDEN PYC
                 | DEVOLVER CONS PYC
                 ;
 
-llamada_func : IDEN PARIZQ expresion PARDER PYC ;
+llamada_func : IDEN PARIZQ expresion PARDER 
+		;
 
 lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion
@@ -122,6 +126,7 @@ expresion    : expresion OPERADORBIN expresion
             | CONS
             | MENOS CONS
             | PARIZQ expresion PARDER
+            | PARIZQ error PARDER
             | OPERADORUNARIO expresion
             | expresion MENOS expresion
             | llamada_func
