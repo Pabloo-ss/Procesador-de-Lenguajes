@@ -140,6 +140,7 @@ expresion    : expresion OPERADORBIN expresion
             | expresion MENOS expresion
             | llamada_func
             | iden_lista
+            | error
             ;
 
 tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;
