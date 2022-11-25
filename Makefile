@@ -21,5 +21,5 @@ todo:
 test: todo
 	./trad < ./prueba.prog
 
-test_sintactico: todo
-	./tad < ./errores_sintacticos.txt
+test_errores: todo
+	./trad < ./pruebaerrores.prog

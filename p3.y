@@ -66,7 +66,7 @@ declar_de_variable_locales :  TIPO  declaracion_v PYC
                 
 declaracion_v : IDEN 
                 | IDEN COMA declaracion_v
-                | IDEN ASIG CONS               
+                | IDEN ASIG expresion               
                 ;
 
 declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque
@@ -87,7 +87,11 @@ sentencia : sentencia_asignacion
             | sentencia_return
             ;
 
-sentencia_asignacion : IDEN ASIG expresion PYC ;
+
+
+sentencia_asignacion : IDEN ASIG expresion PYC 
+                      | iden_lista ASIG expresion PYC 
+                      ;
 
 sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER
             | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER
@@ -105,7 +109,7 @@ sentencia_return : DEVOLVER IDEN PYC
                 | DEVOLVER CONS PYC
                 ;
 
-llamada_func : IDEN PARIZQ expresion PARDER 
+llamada_func : IDEN PARIZQ argumentosLlamada PARDER 
 		;
 
 lista_salida : lista_salida COMA cadena_expresion
@@ -120,6 +124,11 @@ argumentos : TIPO IDEN COMA argumentos
             | TIPO IDEN
             | 
             ;
+          
+argumentosLlamada : expresion COMA argumentosLlamada
+            | expresion
+            | 
+            ;
 
 expresion    : expresion OPERADORBIN expresion
             | IDEN
@@ -130,9 +139,12 @@ expresion    : expresion OPERADORBIN expresion
             | OPERADORUNARIO expresion
             | expresion MENOS expresion
             | llamada_func
+            | iden_lista
             ;
 
 tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;
+
+iden_lista: IDEN CORIZQ CONS CORDER;
 
 /*decl_tipo_comp : decl_tipo_comp_ent
             | decl_tipo_comp_real
