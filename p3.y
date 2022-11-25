@@ -61,12 +61,12 @@ fin_de_bloque : LLAVEDER ;*/
 
 declar_de_variable_locales :  TIPO  declaracion_v PYC
 		| error IDEN
-		| error PYC
+		| error PYC {yyerrok;}
 		;
                 
-declaracion_v : IDEN 
+declaracion_v :   IDEN 
                 | IDEN COMA declaracion_v
-                | IDEN ASIG expresion               
+                | IDEN ASIG expresion 
                 ;
 
 declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque

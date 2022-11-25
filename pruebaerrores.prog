@@ -2,7 +2,7 @@ principal{
 
     ent via vib, vss
     real vf vff ;
-    car ºvc ;
+    car $ ;
     booleano vb ;
     ent lista[4]  l1 =[3,4,6,1];
 
