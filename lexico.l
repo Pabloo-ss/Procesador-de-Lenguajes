@@ -31,7 +31,7 @@ otros	[\n\t ]
 ";"						                                    return PYC;
 "="						                                    return ASIG;
 {otros}		
-.			                	                {printf("Error en la línea %d. Lexema %s no reconocible.\n", yylineno, yytext);};
+.			                	                {printf("Error en la línea %d. Caracter %s no reconocible.\n", yylineno, yytext);};
 
 %%
 

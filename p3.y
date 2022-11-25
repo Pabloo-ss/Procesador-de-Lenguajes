@@ -135,7 +135,6 @@ expresion    : expresion OPERADORBIN expresion
             | CONS
             | MENOS CONS
             | PARIZQ expresion PARDER
-            | PARIZQ error PARDER
             | OPERADORUNARIO expresion
             | expresion MENOS expresion
             | llamada_func
