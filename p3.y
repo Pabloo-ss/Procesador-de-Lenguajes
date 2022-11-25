@@ -122,7 +122,7 @@ cadena_expresion : expresion
 
 argumentos : TIPO IDEN COMA argumentos
             | TIPO IDEN
-            | 
+            | error
             ;
           
 argumentosLlamada : expresion COMA argumentosLlamada
