@@ -22,12 +22,43 @@ otros	[\n\t ]
 \"[^\"]+\"					                                return CADENA;
 ","						                                    return COMA;
 "-"						                                    return MENOS;
-"*"|"/"|"or"|"and"|"xor"|"=="|"<"|">"|"+"	                return OPERADORBIN;
+
+"*"|"/"|"or"|"and"|"xor"|"=="|"<"|">"|"+"	                {int a = -1;
+                                                                switch(yytext*){
+                                                                    case '*': a = 0; break;
+                                                                    case '/': a = 1; break;
+                                                                    case 'o': a = 2; break;
+                                                                    case 'a': a = 3; break;
+                                                                    case 'x': a = 4; break;
+                                                                    case '=': a = 5; break;
+                                                                    case '<': a = 6; break;
+                                                                    case '>': a = 7; break;
+                                                                    case '+': a = 8; break;
+                                                                }
+                                                                yylval.atrib = a;return OPERADORBIN;}
+
 "not" 						                                return OPERADORUNARIO;
-"ent"|"car"|"real"|"booleano"			                    return TIPO;
+
+"ent"|"car"|"real"|"booleano"			                    {int a = -1;
+                                                                switch(yytext*){
+                                                                    case 'e': a = 0; break;
+                                                                    case 'c': a = 1; break;
+                                                                    case 'r': a = 2; break;
+                                                                    case 'b': a = 3; break;
+                                                                }
+                                                                yylval.atrib = a; return TIPO;}
+
 "lista"						                                return LISTA;
-{digito}+|{digito}+.{digito}+|"verdadero"|"falso"|\'[^\']\'	return CONS;
-{letra}({letra}|{digito})*			                        return IDEN;
+
+{digito}+|{digito}+.{digito}+|"verdadero"|"falso"|\'[^\']\'	{int a = -1;
+                                                                switch(yytext*){
+                                                                    case 'v': a = 0; break;
+                                                                    case 'f': a = 1; break;
+                                                                    default: a = 2;
+                                                                }
+                                                                yylval.atrib = a; return CONS;}
+
+{letra}({letra}|{digito})*			                        {yylval.lexema = strdup (yytext); return IDEN;}
 ";"						                                    return PYC;
 "="						                                    return ASIG;
 {otros}		
