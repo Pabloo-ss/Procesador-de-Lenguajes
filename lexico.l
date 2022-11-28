@@ -52,11 +52,12 @@ otros	[\n\t ]
 
 {digito}+|{digito}+.{digito}+|"verdadero"|"falso"|\'[^\']\'	{int a = -1;
                                                                 switch(yytext*){
-                                                                    case 'v': a = 0; break;
-                                                                    case 'f': a = 1; break;
-                                                                    default: a = 2;
+                                                                    case 'v': a = 3; break;
+                                                                    case 'f': a = 3; break;
+                                                                    case '\'': a = 2; break;
+                                                                    default: a = 0;
                                                                 }
-                                                                yylval.atrib = a; return CONS;}
+                                                                yylval.atrib = a; yylval.lexema = strdup(yytext); return CONS;}
 
 {letra}({letra}|{digito})*			                        {yylval.lexema = strdup (yytext); return IDEN;}
 ";"						                                    return PYC;

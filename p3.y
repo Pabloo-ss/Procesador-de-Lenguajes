@@ -7,6 +7,7 @@ void yyerror( const char * msg );
 
 #define YYERROR_VERBOSE
 #define MAX_TS 500
+#define NONEDIM -1
 
 // Esto elimina un Warning, no debería cambiar nada más.
 int yylex();
@@ -26,8 +27,8 @@ typedef enum {
 
 typedef enum {
       entero,
-      real,
       caracter,
+      real,
       booleano,
       listaEntero,
       listaReal,
@@ -46,8 +47,9 @@ typedef struct {
 
 
 long int TOPE=0 ; /* Tope de la pila */
-unsigned int Subprog ; /* Indicador de comienzo de bloque de un subprog */
+unsigned int Subprog = 0 ; /* Indicador de comienzo de bloque de un subprog */
 entradaTS TS[MAX_TS] ; /* Pila de la tabla de símbolos */
+tSimbolo tipoTmp; // Tipo auxiliar para declaración de variables
 
 typedef struct {
       int atrib ; /* Atributo del símbolo (si tiene) */
@@ -189,16 +191,16 @@ void vaciarEntradas() {
   --tope;
 }
 
-void insertarVariable(char* id) {
+void insertarVariable(char* id, int dimension) {
   // Comprobamos que no esté repetida la id
   idRepetida(id);
-  insertarEntrada(variable, id, , -1, );    // **********  De dnd sacar el tipo y la dimension en caso de tenerla *******
+  insertarEntrada(variable, id, tipoTmp, -1, dimension);   
 }
 
 void insertarFuncion(tSimbolo tipoDato, char* id) {
   // Comprobamos que el id no esté usado ya
   idRepetida(id);
-  insertarEntrada(funcion, id, tipoDato, 0, -1); // **********  De dnd sacar el tipo *******
+  insertarEntrada(funcion, id, tipoDato, 0, -1);
 }
 
 void insertarParametro(tSimbolo tipoDato, char* id) {
@@ -214,7 +216,7 @@ void insertarParametro(tSimbolo tipoDato, char* id) {
     }
   }
   // Añadimos la entrada
-  insertarEntrada(parametroFormal, id, tipoDato, -1, ); // ********** una vez mas de dnd sacar la dimension ************
+  insertarEntrada(parametroFormal, id, tipoDato, -1, NONEDIM); // ********** una vez mas de dnd sacar la dimension ************
   // Actualizamos el nº de parámetros de la función
   ++ts[i].parametros;
 }
@@ -225,6 +227,21 @@ tSimbolo buscarID(char* id) {
   if (i < 0)
     return error;
   return ts[i].tipoDato;
+}
+
+void comprobarAsignacion(char* id, tSimbolo ts) {
+  int i = buscarEntrada(id);
+  if (i >= 0) {
+    if (TS[i].entrada != variable) {
+      sprintf(msgError, "ERROR SINTÁCTICO: se intenta asignar a %s, y no es una variable\n", id);
+      yyerror(msgError);
+    } else {
+      if (ts != error && ts != TS[i].tipoDato) {
+        sprintf(msgError, "ERROR SINTÁCTICO: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
+        yyerror(msgError);
+      }
+    }
+  }
 }
 
 
@@ -275,29 +292,27 @@ Lista Preferencias
 %%
 programa : PRINCIPAL inicio_de_bloque;
 
-inicio_de_bloque : LLAVEIZQ bloque ;
+inicio_de_bloque : LLAVEIZQ bloque ;                                {insertarMarca()}
 
 bloque : declar_de_variable_locales bloque
         | declar_de_fun bloque
         | sentencia bloque
-        | sentencia_return LLAVEDER     
+        | sentencia_return LLAVEDER                                 {vaciarEntradas(); subProg = 0;}
         ;
     
-/*
 
-fin_de_bloque : LLAVEDER ;*/
 
-declar_de_variable_locales :  TIPO  declaracion_v PYC
+declar_de_variable_locales :  TIPO  declaracion_v PYC               {tipoTmp = $1.atrib;}
 		| error IDEN
 		| error PYC {yyerrok;}
 		;
                 
-declaracion_v :   IDEN 
-                | IDEN COMA declaracion_v
-                | IDEN ASIG expresion 
+declaracion_v :   IDEN                                              {insertarVariable($1.lexema, NONEDIM);}
+                | IDEN COMA declaracion_v                           {insertarVariable($1.lexema, NONEDIM);}
+                | IDEN ASIG expresion                               {insertarVariable($1.lexema, NONEDIM); comprobarAsignacion($1.lexema, $3.tipo);}
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque
+declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque {insertarFuncion($1.atrib, $2.lexema); subProg = 1;}
                 ;
 
 sentencias :  sentencias sentencia 
@@ -317,8 +332,8 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresion PYC 
-                      | iden_lista ASIG expresion PYC 
+sentencia_asignacion : IDEN ASIG expresion PYC                    {buscarEntrada($1.lexema); comprobarAsignacion($1.lexema, $3.tipo);}
+                      | iden_lista ASIG expresion PYC             {buscarEntrada($1.lexema); comprobarAsignacion($1.lexema, $3.tipo);}
                       ;
 
 sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER
@@ -333,11 +348,11 @@ sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion expresion PYC expresion PARDER LLAVEIZQ sentencias LLAVEDER ;
 
-sentencia_return : DEVOLVER IDEN PYC
-                | DEVOLVER CONS PYC
+sentencia_return : DEVOLVER IDEN PYC                {buscarEntrada($2.lexema); $$.tipo = buscarID($2.lexema);}
+                | DEVOLVER CONS PYC                 {$$.tipo = $2.atrib;}
                 ;
 
-llamada_func : IDEN PARIZQ argumentosLlamada PARDER 
+llamada_func : IDEN PARIZQ argumentosLlamada PARDER                 {buscarEntrada($1.lexema);}
 		;
 
 lista_salida : lista_salida COMA cadena_expresion
@@ -348,8 +363,8 @@ cadena_expresion : expresion
                 | CADENA
                 ;
 
-argumentos : TIPO IDEN COMA argumentos
-            | TIPO IDEN
+argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);}
+            | TIPO IDEN                                               {insertarParametro($1.atrib, $2.lexema);}
             | error
             ;
           
@@ -359,7 +374,7 @@ argumentosLlamada : expresion COMA argumentosLlamada
             ;
 
 expresion    : expresion OPERADORBIN expresion
-            | IDEN
+            | IDEN                                                    {buscarEntrada($1.lexema);}
             | CONS
             | MENOS CONS
             | PARIZQ expresion PARDER
@@ -370,9 +385,9 @@ expresion    : expresion OPERADORBIN expresion
             | error
             ;
 
-tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;
-
-iden_lista: IDEN CORIZQ CONS CORDER;
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;     {insertarVariable($6.lexema, ); comprobarAsignacion($6.lexema, $9.tipo)}
+                                                                                                        //Como se recupera el valor de la cons para meterlo como dimensión????
+iden_lista: IDEN CORIZQ CONS CORDER;            {buscarEntrada($1.lexema);}
 
 /*decl_tipo_comp : decl_tipo_comp_ent
             | decl_tipo_comp_real
@@ -381,8 +396,8 @@ iden_lista: IDEN CORIZQ CONS CORDER;
             | %empty
             ;*/
 
-decl_tipo_comp : CONS COMA decl_tipo_comp
-                  | CONS
+decl_tipo_comp : CONS COMA decl_tipo_comp                         {$$.tipo = $1.atrib;}
+                  | CONS                                          {$$.tipo = $1.atrib;}
                   ; 
 
 /*<decl_tipo_comp_real> ::= <real>, <decl_tipo_comp_real>
