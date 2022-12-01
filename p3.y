@@ -89,8 +89,34 @@ int esLista(tSimbolo tipo_dato){
   return tipo_dato == listaEntero || tipo_dato == listaReal || tipo_dato == listaBooleano || tipo_dato == listaCaracter;
 }
 
-int esNumero(TipoDato tipo_dato){
+int esNumero(tSimbolo tipo_dato){
   return tipo_dato == entero || tipo_dato == real;
+}
+
+int esEntero(tSimbolo tipo_dato){
+  return tipo_dato == entero;
+}
+
+int esReal(tSimbolo tipo_dato){
+  return tipo_dato == real;
+}
+
+tSimbolo tipoCons(char* cons){
+  tSimbolo a = error
+
+  switch(cons*){
+      case 'v': a = booleano; break;
+      case 'f': a = booleano; break;
+      case '\'': a = caracter; break;
+      default: a = entero;
+  }
+
+  for(int i = 0; i != '\0'; i++){
+    if((cons + i)* == '.')
+      a = real
+  }
+
+  return a;
 }
 
 void imprimir() {
@@ -236,7 +262,7 @@ void comprobarAsignacion(char* id, tSimbolo ts) {
       sprintf(msgError, "ERROR SINTÁCTICO: se intenta asignar a %s, y no es una variable\n", id);
       yyerror(msgError);
     } else {
-      if (ts != error && ts != TS[i].tipoDato) {
+      if (ts == error || ts != TS[i].tipoDato) {
         sprintf(msgError, "ERROR SINTÁCTICO: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
         yyerror(msgError);
       }
@@ -244,6 +270,164 @@ void comprobarAsignacion(char* id, tSimbolo ts) {
   }
 }
 
+void isBooleana(tSimbolo ts) {
+  if (ts == error || ts != booleano) {
+    sprintf(msgError, "ERROR SINTÁCTICO: condición no es de tipo booleano, se tiene tipo %s", tipoAString(ts));
+    yyerror(msgError);
+  }
+}
+
+tSimbolo andLog(tSimbolo ts1, tSimbolo ts2) {
+  if (ts1 == error || ts2 == error)
+    return error;
+
+  if (ts1 != booleano || ts2 != booleano) {
+    sprintf(msgError, "ERROR SINTÁCTICO: operador and no aplicable a los tipos %s, %s\n", tipoAString(ts1), tipoAString(ts2));
+    yyerror(msgError);
+    return error;
+  }
+
+  return booleano;
+}
+
+tSimbolo orLog(tSimbolo ts1, tSimbolo ts2) {
+  if (ts1 == error || ts2 == error)
+    return error;
+
+  if (ts1 != booleano || ts2 != booleano) {
+    sprintf(msgError, "ERROR SINTÁCTICO: operador or no aplicable a los tipos %s, %s\n",   tipoAString(ts1), tipoAString(ts2));
+    yyerror(msgError);
+    return error;
+  }
+
+  return booleano;
+}
+
+tSimbolo eq(tSimbolo ts1, tSimbolo ts2) {
+  if (ts1 == error || ts2 == error)
+    return error;
+
+  if (ts1 != ts2) {
+    sprintf(msgError, "ERROR SINTÁCTICO: operador == no aplicable a los tipos %s, %s\n", tipoAString(ts1), tipoAString(ts2));
+    yyerror(msgError);
+    return error;
+  }
+
+  return booleano;
+}
+
+tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
+  if (ts1 == error || ts2 == error)
+    return error;
+
+  switch(atr){
+    case 0: // *
+      if(ts1 == entero && ts2 == entero)
+        return entero;
+      else if(ts1 == real && ts2 == real)
+        return real;
+      else if((ts1 == entero || ts1 == real) && (ts2 == entero && ts2 == real))
+        return real;
+      else{
+        sprintf(msgError, "ERROR SINTÁCTICO: operador * no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
+        yyerror(msgError);
+        return error;
+      }
+      break;
+    case 1: // /
+      break;
+    case 2: // or
+      if(ts1 == booleano && ts2 == booleano)
+        return booleano;
+      else{
+        sprintf(msgError, "ERROR SINTÁCTICO: operador or no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
+        yyerror(msgError);
+        return error;
+      }
+      break;
+    case 3: // and
+      if(ts1 == booleano && ts2 == booleano)
+        return booleano;
+      else{
+        sprintf(msgError, "ERROR SINTÁCTICO: operador and no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
+        yyerror(msgError);
+        return error;
+      }
+      break;
+    case 4;// xor
+      if(ts1 == booleano && ts2 == booleano)
+        return booleano;
+      else{
+        sprintf(msgError, "ERROR SINTÁCTICO: operador xor no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
+        yyerror(msgError);
+        return error;
+      }
+      break;
+    case 5://  ==
+      break;
+    case 6:// <
+      break;
+    case 7:// >
+      break;
+    case 8: // +
+      if(ts1 == entero && ts2 == entero)
+        return entero;
+      else if(ts1 == real && ts2 == real)
+        return real;
+      else if((ts1 == entero || ts1 == real) && (ts2 == entero && ts2 == real))
+        return real;
+      else{
+        sprintf(msgError, "ERROR SINTÁCTICO: operador + no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
+        yyerror(msgError);
+        return error;
+      }
+      break;
+  }
+}
+
+void menosUnarioAplicable(tSimbolo ts){
+  if(!(ts == entero || ts == real)){
+    sprintf(msgError, "ERROR SINTÁCTICO: el operador - no es aplicable al tipo %s\n", tipoAString(ts));
+    yyerror(msgError);
+  }
+}
+
+void opUnarioAplicable(tSimbolo ts){
+  if(ts != booleano){
+    sprintf(msgError, "ERROR SINTÁCTICO: el operador not no es aplicable al tipo %s\n", tipoAString(ts));
+    yyerror(msgError);
+  }
+}
+
+void comprobarDimen(tSimbolo ts){
+  if(!esEntero(ts)){
+    sprintf(msgError, "ERROR SINTÁCTICO: el tipo %s no es válido como dimensión \n", tipoAString(ts));
+    yyerror(msgError);
+  }
+}
+
+void comprobarDevolver(tSimbolo ts){
+  int i = TOPE;
+  int marcaEncontrada = 0;
+  int funcionEncontrada = 0;
+
+  while (i >= 1 && !funcionEncontrada) {
+    funcionEncontrada = marcaEncontrada && TS[i].tipoEntrada == funcion;
+    marcaEncontrada = (!marcaEncontrada && TS[i].tipoEntrada == marca) ||
+                      (marcaEncontrada && TS[i].tipoEntrada == parametroFormal);
+    --i;
+  }
+
+  if (funcionEncontrada) ++i;
+
+  if (i <= 0) {
+    sprintf(msgError, "ERROR SINTÁCTICO: return no asignado a ninguna función\n");
+    yyerror(msgError);
+  } else if (ts != error && ts != TS[i].tipoDato) {
+    sprintf(msgError, "ERROR SINTÁCTICO: return devuelve tipo %s, y función es de tipo %s\n",  tipoAString(ts), tipoAString(TS[i].tipoDato));
+    yyerror(msgError);
+  }
+}
 
 
 /* Fin de funciones y procedimientos para manejo de la TS */
@@ -319,7 +503,7 @@ sentencias :  sentencias sentencia
             | 
             ;
 
-sentencia : sentencia_asignacion
+sentencia : sentencia_asignacion PYC
             | sentencia_if
             | sentencia_while
             | sentencia_entrada
@@ -332,28 +516,27 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresion PYC                    {buscarEntrada($1.lexema); comprobarAsignacion($1.lexema, $3.tipo);}
-                      | iden_lista ASIG expresion PYC             {buscarEntrada($1.lexema); comprobarAsignacion($1.lexema, $3.tipo);}
-                      ;
+sentencia_asignacion : IDEN ASIG expresion                        {buscarEntrada($1.lexema); comprobarAsignacion($1.lexema, $3.tipo);}
+                      | iden_lista ASIG expresion                 {buscarEntrada($1.lexema); comprobarAsignacion($1.lexema, $3.tipo);}
+                      ;                                            //Igual este buscarEntrada sobra
 
-sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER
-            | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER
+sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER                                          {isBooleana($2.tipo);}
+            | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
             ;
 
-sentencia_while : CONDWHILE PARIZQ expresion PARDER LLAVEIZQ sentencias LLAVEDER ;
+sentencia_while : CONDWHILE PARIZQ expresion PARDER LLAVEIZQ sentencias LLAVEDER ;    {isBooleana($3.tipo);}
 
-sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC ;
+sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC ;                                  {buscarEntrada($3.lexema);}
 
-sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
+sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;            
 
-sentencia_for : CONDFOR PARIZQ  sentencia_asignacion expresion PYC expresion PARDER LLAVEIZQ sentencias LLAVEDER ;
+sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER ;    {isBooleana($5.tipo);} 
 
-sentencia_return : DEVOLVER IDEN PYC                {buscarEntrada($2.lexema); $$.tipo = buscarID($2.lexema);}
-                | DEVOLVER CONS PYC                 {$$.tipo = $2.atrib;}
+sentencia_return : DEVOLVER IDEN PYC                {buscarEntrada($2.lexema); comprobarDevolver($2.tipo); $$.tipo = buscarID($2.lexema);}
+                | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo); $$.tipo = $2.tipo;}
                 ;
 
-llamada_func : IDEN PARIZQ argumentosLlamada PARDER                 {buscarEntrada($1.lexema);}
-		;
+llamada_func : IDEN PARIZQ argumentosLlamada PARDER   ;              {buscarEntrada($1.lexema);}
 
 lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion
@@ -373,19 +556,19 @@ argumentosLlamada : expresion COMA argumentosLlamada
             | 
             ;
 
-expresion    : expresion OPERADORBIN expresion
+expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
             | IDEN                                                    {buscarEntrada($1.lexema);}
-            | CONS
-            | MENOS CONS
+            | CONS                                                    {$1.tipo = tipoCons($1.lexema);}
+            | MENOS CONS                                              {$2.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
             | PARIZQ expresion PARDER
-            | OPERADORUNARIO expresion
+            | OPERADORUNARIO expresion                                {opUnarioAplicable($2.tipo);}
             | expresion MENOS expresion
             | llamada_func
             | iden_lista
             | error
             ;
 
-tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;     {insertarVariable($6.lexema, ); comprobarAsignacion($6.lexema, $9.tipo)}
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;     {comprobarDimen(tipoCons($4.lexema));comprobarAsignacion($6.lexema, $9.tipo); insertarVariable($6.lexema, );}
                                                                                                         //Como se recupera el valor de la cons para meterlo como dimensión????
 iden_lista: IDEN CORIZQ CONS CORDER;            {buscarEntrada($1.lexema);}
 
@@ -396,8 +579,8 @@ iden_lista: IDEN CORIZQ CONS CORDER;            {buscarEntrada($1.lexema);}
             | %empty
             ;*/
 
-decl_tipo_comp : CONS COMA decl_tipo_comp                         {$$.tipo = $1.atrib;}
-                  | CONS                                          {$$.tipo = $1.atrib;}
+decl_tipo_comp : CONS COMA decl_tipo_comp                         {$1.tipo = tipoCons($1.lexema);}
+                  | CONS                                          {$1.tipo = tipoCons($1.lexema);}
                   ; 
 
 /*<decl_tipo_comp_real> ::= <real>, <decl_tipo_comp_real>
@@ -431,179 +614,3 @@ int main(){
 
   return 0;
 }
-
-/* Este codigo no da ningun warning y analiza bien todo en test.prog
-%{
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-void yyerror( const char * msg );
-
-#define YYERROR_VERBOSE
-%}
-
-/*
-Lista Tokens
-*//*
-%start programa
-%token PARDER PARIZQ
-%token CORDER CORIZQ
-%token LLAVEDER LLAVEIZQ
-%token CONDFOR CONDWHILE
-%token CONDIF CONDELSE
-%token MENOS OPERADORBIN OPERADORUNARIO
-%token TIPO 
-%token LISTA
-%token CONS IDEN 
-%token PYC COMA
-%token ASIG
-%token ENTRADA SALIDA
-%token CADENA
-%token PRINCIPAL DEVOLVER
-/*
-Lista Preferencias
-*//*
-%left OPERADORBIN
-%right OPERADORUNARIO
-%left MENOS
-%right CONDFOR
-%right SALIDA
-%right ENTRADA
-%left PARDER
-%right PARIZQ
-%left CORDER
-%left CORIZQ
-%left LLAVEDER
-%right LLAVEIZQ
-
-
-
-%%
-programa : PRINCIPAL inicio_de_bloque;
-
-inicio_de_bloque : LLAVEIZQ bloque ;
-
-bloque : declar_de_variable_locales bloque
-        | declar_de_fun bloque
-        | sentencia bloque
-        | sentencia_return LLAVEDER     
-        ;
-    
-/*
-
-fin_de_bloque : LLAVEDER ;*//*
-
-declar_de_variable_locales : TIPO  declaracion_v PYC
-                            ;
-                
-declaracion_v : IDEN 
-                | IDEN COMA declaracion_v
-                | IDEN ASIG CONS
-                ;
-
-declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque
-                ;
-
-sentencias :  sentencias sentencia 
-            | 
-            ;
-
-sentencia : sentencia_asignacion
-            | sentencia_if
-            | sentencia_while
-            | sentencia_entrada
-            | sentencia_salida
-            | llamada_func
-            | sentencia_for
-            | tipo_variable_complejo
-            | sentencia_return
-            ;
-
-sentencia_asignacion : IDEN ASIG expresion PYC ;
-
-sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER
-            | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER
-            ;
-
-sentencia_while : CONDWHILE PARIZQ expresion PARDER LLAVEIZQ sentencias LLAVEDER ;
-
-sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC ;
-
-sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
-
-sentencia_for : CONDFOR PARIZQ  sentencia_asignacion expresion PYC expresion PARDER LLAVEIZQ sentencias LLAVEDER ;
-
-sentencia_return : DEVOLVER IDEN PYC
-                | DEVOLVER CONS PYC
-                ;
-
-llamada_func : IDEN PARIZQ expresion PARDER PYC ;
-
-lista_salida : lista_salida COMA cadena_expresion
-            | cadena_expresion
-            ;
-
-cadena_expresion : expresion
-                | CADENA
-                ;
-
-argumentos : TIPO IDEN COMA argumentos
-            | TIPO IDEN
-            | 
-            ;
-
-expresion    : expresion OPERADORBIN expresion
-            | IDEN
-            | CONS
-            | MENOS CONS
-            | PARIZQ expresion PARDER
-            | OPERADORUNARIO expresion
-            | llamada_func
-            ;
-
-tipo_variable_complejo : LISTA CONS TIPO IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;
-
-/*decl_tipo_comp : decl_tipo_comp_ent
-            | decl_tipo_comp_real
-            | decl_tipo_comp_booleano
-            | decl_tipo_comp_lista
-            | %empty
-            ;*//*
-
-decl_tipo_comp : CONS COMA decl_tipo_comp
-                  | CONS
-                  ; 
-
-/*<decl_tipo_comp_real> ::= <real>, <decl_tipo_comp_real>
-                  |<real>
-<decl_tipo_comp_booleano> ::= <booleano>, <decl_tipo_comp_booleano>
-                  |<booleano>
-<decl_tipo_comp_car> ::= <caracter>, <decl_tipo_comp_car>
-                  |<caracter>
-<decl_tipo_comp_lista> ::= [<decl_tipo_comp>], <decl_tipo_comp_lista>
-                  |[<decl_tipo_comp_lista>]
-<constante> ::= <entero>
-            |<real>
-            |<booleano>
-            |<caracter>*//*
-
-
-
-
-
-
-%%
-
-#include "lex.yy.c"
-
-void yyerror(const char *msg){
-  fprintf(stderr, "[Linea %d]: %s\n", yylineno, msg);
-}
-
-int main(){
-  yyparse();
-
-  return 0;
-}
-*/
