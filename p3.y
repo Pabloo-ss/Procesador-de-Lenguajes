@@ -6,7 +6,7 @@
 void yyerror( const char * msg );
 
 #define YYERROR_VERBOSE
-#define MAX_TS 500
+
 #define NONEDIM -1
 
 // Esto elimina un Warning, no debería cambiar nada más.
@@ -25,6 +25,8 @@ typedef enum {
       parametro_formal, /* si es parametro formal */
 } tEntrada ;
 
+//Si tEntrada es funcion, variable, o parametro-formal; indica el tipo
+
 typedef enum {
       entero,
       caracter,
@@ -36,18 +38,22 @@ typedef enum {
       listaBooleano,
       error
 } tSimbolo ;
-
+// tSimbolo indica el tipo de la variable
 typedef struct {
       tEntrada entrada ;
       char *nombre ;
       tSimbolo tipoDato ;
       unsigned int parametros ;
       unsigned int dimension ;
+      // int TamDim1 ; para las listas tambien no ??
 } entradaTS ;
+//Se usa para formar
 
+
+#define MAX_TS 500 //tamaño maximo de la pila
 
 long int TOPE=0 ; /* Tope de la pila */
-unsigned int Subprog = 0 ; /* Indicador de comienzo de bloque de un subprog */
+unsigned int Subprog = 0 ; /* Indicador de comienzo de bloque de un Subprog */
 entradaTS TS[MAX_TS] ; /* Pila de la tabla de símbolos */
 tSimbolo tipoTmp; // Tipo auxiliar para declaración de variables
 
@@ -56,6 +62,8 @@ typedef struct {
       char *  lexema ; /* Nombre del lexema */
       tSimbolo tipo ; /* Tipo del símbolo */
 } atributos ;
+
+#define YYSTYPE atributos
 
 /* Inicio funciones auxiliares */
 
@@ -102,9 +110,9 @@ int esReal(tSimbolo tipo_dato){
 }
 
 tSimbolo tipoCons(char* cons){
-  tSimbolo a = error
+  tSimbolo a = error;
 
-  switch(cons*){
+  switch(*cons){
       case 'v': a = booleano; break;
       case 'f': a = booleano; break;
       case '\'': a = caracter; break;
@@ -112,8 +120,10 @@ tSimbolo tipoCons(char* cons){
   }
 
   for(int i = 0; i != '\0'; i++){
-    if((cons + i)* == '.')
-      a = real
+    if(*(cons + i) == '.'){
+      a = real;
+
+    }       // Aqui que se hace que no lo entiendo????????????
   }
 
   return a;
@@ -122,21 +132,21 @@ tSimbolo tipoCons(char* cons){
 void imprimir() {
   for (int i = 0; i <= TOPE; ++i) {
     printf("[%i]: ", i);
-    switch(TS[i].tEntrada) {
+    switch(TS[i].entrada) { //aqui seria entrada en vez de tEntrada no ?
       case variable:
-        printf("Variable %s, tipo: %s\n", ts[i].nombre,
-            tipoAString(ts[i].tipoDato));
+        printf("Variable %s, tipo: %s\n", TS[i].nombre,
+            tipoAString(TS[i].tipoDato));
         break;
       case funcion:
-        printf("Funcion %s, tipo: %s, nº parametros: %i\n", ts[i].nombre,
-            tipoAString(ts[i].tipoDato), ts[i].parametros);
+        printf("Funcion %s, tipo: %s, nº parametros: %i\n", TS[i].nombre,
+            tipoAString(TS[i].tipoDato), TS[i].parametros);
         break;
       case marca:
         printf("Marca\n");
         break;
-      case parametroFormal:
-        printf("Parametro formal %s, tipo: %s\n", ts[i].nombre,
-            tipoAString(ts[i].tipoDato));
+      case parametro_formal:
+        printf("Parametro formal %s, tipo: %s\n", TS[i].nombre,
+            tipoAString(TS[i].tipoDato));
         break;
       default:
         fprintf(stderr, "Error en imprimir(), no debería salir\n");
@@ -148,8 +158,8 @@ void imprimir() {
 void idRepetida(char* id) {
   // Miramos si id estaba declarado después de la última marca
   int repetida = 0;
-  for (int i = TOPE; !repetida && ts[i].entrada != marca; --i) {
-    if (ts[i].entrada != parametroFormal && !strcmp(ts[i].nombre, id)) {  // ******* Aqui creo q la primera sentencia del if seria == en vez de != pq aunq sea argumento de la funcion no queremos que se repita el nombre no?
+  for (int i = TOPE; !repetida && TS[i].entrada != marca; --i) {
+    if (TS[i].entrada != parametro_formal && !strcmp(TS[i].nombre, id)) {  // ******* Aqui creo q la primera sentencia del if seria == en vez de != pq aunq sea argumento de la funcion no queremos que se repita el nombre no?
       sprintf(msgError, "ERROR SINTÁCTICO: identificador %s ya declarado\n", id);
       yyerror(msgError);
       repetida = 1;
@@ -168,7 +178,7 @@ void insertarEntrada(tEntrada te, char* nombre, tSimbolo tipo_dato, int nParam, 
   };
 
   // Si la tabla está llena da error
-  if (tope + 1 >= MAX_TS) {
+  if (TOPE + 1 >= MAX_TS) { //Seria TOPE EN MAYUCULAS NO ?
     sprintf(msgError, "ERROR SINTÁCTICO: La tabla de símbolos está llena\n");
     yyerror(msgError);
   }
@@ -182,7 +192,7 @@ void insertarEntrada(tEntrada te, char* nombre, tSimbolo tipo_dato, int nParam, 
 // actual. Si no lo encuentra, devuelve -1. No gestiona errores!
 int buscarEntrada(char* id) {
   int i = TOPE;
-  while(i >= 0 && (ts[i].tEntrada == parametroFormal || strcmp(id, ts[i].nombre)))
+  while(i >= 0 && (TS[i].entrada == parametro_formal || strcmp(id, TS[i].nombre)))
     --i;
 
   if (i < 0) {
@@ -201,20 +211,20 @@ void insertarMarca() {
   // Metemos la marca
   insertarEntrada(marca, "", -1, -1, -1);
   // Si es subprograma añadimos las variables al bloque
-  if (subProg) {
-    for (int i = TOPE - 1; ts[i].tipoEntrada != funcion; --i) {
-      insertarEntrada(variable, ts[i].nombre, ts[i].tipoDato, -1, ts[i].dimension); 
+  if (Subprog) {
+    for (int i = TOPE - 1; TS[i].entrada != funcion; --i) {
+      insertarEntrada(variable, TS[i].nombre, TS[i].tipoDato, -1, TS[i].dimension); 
     }
-    subProg = 0;
+    Subprog = 0;
   }
 }
 
 void vaciarEntradas() {
   // Hasta la última marca borramos todo
-  while (ts[tope].tipoEntrada != marca)
-    --tope;
+  while (TS[TOPE].entrada != marca)
+    --TOPE;
   // Elimina la última marca
-  --tope;
+  --TOPE;
 }
 
 void insertarVariable(char* id, int dimension) {
@@ -234,17 +244,17 @@ void insertarParametro(tSimbolo tipoDato, char* id) {
   // Además guardamos el índice de la función
   int i;
   int parametroRepetido = 0;
-  for (i = TOPE; !parametroRepetido && ts[i].tipoEntrada != funcion; --i) {
-    if (!strcmp(ts[i].nombre, id)) {
+  for (i = TOPE; !parametroRepetido && TS[i].entrada != funcion; --i) {
+    if (!strcmp(TS[i].nombre, id)) {
       sprintf(msgError, "ERROR SINTÁCTICO: identificador del parámetro %s ya declarado\n", id);
       yyerror(msgError);
       parametroRepetido = 1;
     }
   }
   // Añadimos la entrada
-  insertarEntrada(parametroFormal, id, tipoDato, -1, NONEDIM); // ********** una vez mas de dnd sacar la dimension ************
+  insertarEntrada(parametro_formal, id, tipoDato, -1, NONEDIM); // ********** una vez mas de dnd sacar la dimension ************
   // Actualizamos el nº de parámetros de la función
-  ++ts[i].parametros;
+  ++TS[i].parametros;
 }
 
 tSimbolo buscarID(char* id) {
@@ -252,7 +262,7 @@ tSimbolo buscarID(char* id) {
 
   if (i < 0)
     return error;
-  return ts[i].tipoDato;
+  return TS[i].tipoDato;
 }
 
 void comprobarAsignacion(char* id, tSimbolo ts) {
@@ -354,7 +364,7 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
         return error;
       }
       break;
-    case 4;// xor
+    case 4:// xor
       if(ts1 == booleano && ts2 == booleano)
         return booleano;
       else{
@@ -412,9 +422,9 @@ void comprobarDevolver(tSimbolo ts){
   int funcionEncontrada = 0;
 
   while (i >= 1 && !funcionEncontrada) {
-    funcionEncontrada = marcaEncontrada && TS[i].tipoEntrada == funcion;
-    marcaEncontrada = (!marcaEncontrada && TS[i].tipoEntrada == marca) ||
-                      (marcaEncontrada && TS[i].tipoEntrada == parametroFormal);
+    funcionEncontrada = marcaEncontrada && TS[i].entrada == funcion;
+    marcaEncontrada = (!marcaEncontrada && TS[i].entrada == marca) ||
+                      (marcaEncontrada && TS[i].entrada == parametro_formal);
     --i;
   }
 
@@ -476,12 +486,12 @@ Lista Preferencias
 %%
 programa : PRINCIPAL inicio_de_bloque;
 
-inicio_de_bloque : LLAVEIZQ bloque ;                                {insertarMarca()}
+inicio_de_bloque : LLAVEIZQ bloque  {insertarMarca(); }
 
 bloque : declar_de_variable_locales bloque
         | declar_de_fun bloque
         | sentencia bloque
-        | sentencia_return LLAVEDER                                 {vaciarEntradas(); subProg = 0;}
+        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;}
         ;
     
 
@@ -491,12 +501,12 @@ declar_de_variable_locales :  TIPO  declaracion_v PYC               {tipoTmp = $
 		| error PYC {yyerrok;}
 		;
                 
-declaracion_v :   IDEN                                              {insertarVariable($1.lexema, NONEDIM);}
-                | IDEN COMA declaracion_v                           {insertarVariable($1.lexema, NONEDIM);}
-                | IDEN ASIG expresion                               {insertarVariable($1.lexema, NONEDIM); comprobarAsignacion($1.lexema, $3.tipo);}
+declaracion_v :   IDEN   {insertarVariable($1.lexema, NONEDIM);}
+                | IDEN COMA declaracion_v  {insertarVariable($1.lexema, NONEDIM);}
+                | IDEN ASIG expresion     {insertarVariable($1.lexema, NONEDIM); comprobarAsignacion($1.lexema, $3.tipo);}
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque {insertarFuncion($1.atrib, $2.lexema); subProg = 1;}
+declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;}
                 ;
 
 sentencias :  sentencias sentencia 
@@ -524,19 +534,19 @@ sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER                    
             | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
             ;
 
-sentencia_while : CONDWHILE PARIZQ expresion PARDER LLAVEIZQ sentencias LLAVEDER ;    {isBooleana($3.tipo);}
+sentencia_while : CONDWHILE PARIZQ expresion PARDER LLAVEIZQ sentencias LLAVEDER  {isBooleana($3.tipo);}
 
-sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC ;                                  {buscarEntrada($3.lexema);}
+sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC          {buscarEntrada($3.lexema);}
 
 sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;            
 
-sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER ;    {isBooleana($5.tipo);} 
+sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER   {isBooleana($5.tipo);} 
 
 sentencia_return : DEVOLVER IDEN PYC                {buscarEntrada($2.lexema); comprobarDevolver($2.tipo); $$.tipo = buscarID($2.lexema);}
                 | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo); $$.tipo = $2.tipo;}
                 ;
 
-llamada_func : IDEN PARIZQ argumentosLlamada PARDER   ;              {buscarEntrada($1.lexema);}
+llamada_func : IDEN PARIZQ argumentosLlamada PARDER    {buscarEntrada($1.lexema);}
 
 lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion
@@ -568,9 +578,9 @@ expresion    : expresion OPERADORBIN expresion                        {$$.tipo =
             | error
             ;
 
-tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC ;     {comprobarDimen(tipoCons($4.lexema));comprobarAsignacion($6.lexema, $9.tipo); insertarVariable($6.lexema, );}
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));comprobarAsignacion($6.lexema, $9.tipo); insertarVariable($6.lexema, );}
                                                                                                         //Como se recupera el valor de la cons para meterlo como dimensión????
-iden_lista: IDEN CORIZQ CONS CORDER;            {buscarEntrada($1.lexema);}
+iden_lista: IDEN CORIZQ CONS CORDER  {buscarEntrada($1.lexema);}
 
 /*decl_tipo_comp : decl_tipo_comp_ent
             | decl_tipo_comp_real
