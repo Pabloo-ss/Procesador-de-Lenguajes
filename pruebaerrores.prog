@@ -1,5 +1,6 @@
 principal{
 
+    ent a = 3;
     ent via vib, vss
     real vf vff ;
     car $ ;
@@ -15,6 +16,9 @@ principal{
             real xf, x2 ;
             
             car funcionC(car c){
+                ent h = 3 + 4;
+                ent j = h + 4;
+                car $ ;
                 car x = li[1] + 1;
                 devolver x;
             }

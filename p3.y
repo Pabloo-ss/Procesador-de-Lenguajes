@@ -507,7 +507,7 @@ declaracion_v :   IDEN   {insertarVariable($1.lexema, NONEDIM);}
                 | IDEN ASIG expresion     {insertarVariable($1.lexema, NONEDIM); comprobarAsignacion($1.lexema, $3.tipo);}
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ argumentos PARDER inicio_de_bloque {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;}
+declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema);} argumentos PARDER inicio_de_bloque { Subprog = 1;}
                 ;
 
 sentencias :  sentencias sentencia 
@@ -557,7 +557,7 @@ cadena_expresion : expresion
                 | CADENA
                 ;
 
-argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);}
+argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);imprimir();}
             | TIPO IDEN                                               {insertarParametro($1.atrib, $2.lexema);}
             | error
             ;
@@ -579,9 +579,9 @@ expresion    : expresion OPERADORBIN expresion                        {$$.tipo =
             | error
             ;
 
-tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));comprobarAsignacion($6.lexema, $9.tipo); insertarVariable($6.lexema, atoi($4.lexema) );}
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));tipoTmp = $1.atrib; insertarVariable($6.lexema, 4 ); comprobarAsignacion($6.lexema, $9.tipo);}
                                                                                                         //Como se recupera el valor de la cons para meterlo como dimensión????
-iden_lista: IDEN CORIZQ CONS CORDER  {buscarEntrada($1.lexema);}
+iden_lista: IDEN CORIZQ CONS CORDER  {$$.tipo=buscarEntrada($1.lexema);}
 
 /*decl_tipo_comp : decl_tipo_comp_ent
             | decl_tipo_comp_real
