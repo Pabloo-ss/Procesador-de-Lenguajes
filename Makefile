@@ -19,7 +19,7 @@ todo:
 
 # Test
 test_programita: todo
-	./trad < ./pruebas/programa_correcto.prog
+	./trad < ./prueba.prog
 
 test_sintactico: todo
-	./trad < ./pruebas/errores_sintacticos.txt
+	./trad < ./pruebaerrores.prog
