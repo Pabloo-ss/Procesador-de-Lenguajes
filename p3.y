@@ -249,6 +249,7 @@ void insertarParametro(tSimbolo tipoDato, char* id) {
       sprintf(msgError, "ERROR SINTÁCTICO: identificador del parámetro %s ya declarado\n", id);
       yyerror(msgError);
       parametroRepetido = 1;
+    
     }
   }
   // Añadimos la entrada
@@ -578,7 +579,7 @@ expresion    : expresion OPERADORBIN expresion                        {$$.tipo =
             | error
             ;
 
-tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));comprobarAsignacion($6.lexema, $9.tipo); insertarVariable($6.lexema, );}
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));comprobarAsignacion($6.lexema, $9.tipo); insertarVariable($6.lexema, atoi($4.lexema) );}
                                                                                                         //Como se recupera el valor de la cons para meterlo como dimensión????
 iden_lista: IDEN CORIZQ CONS CORDER  {buscarEntrada($1.lexema);}
 
