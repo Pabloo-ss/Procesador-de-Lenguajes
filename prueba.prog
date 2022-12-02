@@ -7,39 +7,40 @@ principal{
     ent lista[4]  le1 =[3,4,6,1];
     real lista[1]  lr2 =[3.1];
     car lista[2]  lc3 =['r', 'e'];
-    booleano lista[2]  lb4 =[verdadero, falso];
+    booleano lista[3]  lb4 =[verdadero, falso, 1];
 
     le1[1] = 3 + e1;
 
-
+    
     ent funcionA (ent pe1, real pr2, car pc3){
         ent fe1, fe2 ;
         
         car funcionB (car pc1, booleano pb1){
             real fr1, fr2 ;
-            
-            car funcionC(car c){
-                car x = li[1] + 1;
-                devolver x;
+            ent funcionC(ent e3){
+                ent e = e3 + 1;
+                devolver e;
             }
             
             real x1 ;
-            
             x1= 1.3 ;
+            ent c2 = 0;
             si c2 > 10{
                 c2 = c2 - 1 ;
             }sino{
                 x1= 3.1 ;
             }
             devolver x1;
+
         }
-        devolver x1 ;
+        devolver fe1 ;
     }
 
     real funcionD(real x){
     
         devolver x;
     }
+             
 
     real funcionE(real x){
         real y = x + 1.2;
