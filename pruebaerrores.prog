@@ -19,7 +19,7 @@ principal{
                 ent h = 3 + 4;
                 ent j = h + 4;
                 car $ ;
-                car x = li[1] + 1;
+                car x = l1[1] + 1;
                 devolver x;
             }
             

@@ -93,6 +93,42 @@ char* tipoAString(tSimbolo tipo_dato) {
   }
 }
 
+tSimbolo aTipoLista(tSimbolo ts){
+  switch (ts) {
+    case real:
+      return listaReal;
+    case entero:
+      return listaEntero;
+    case booleano:
+      return listaBooleano;
+    case caracter:
+      return listaCaracter;
+    case error:
+      return error;
+    default:
+      fprintf(stderr, "Error en aTipoLista(), no se conoce el tipo dato\n");
+      exit(EXIT_FAILURE);
+  }
+}
+
+tSimbolo listaATipo(tSimbolo ts){
+  switch (ts) {
+    case listaReal:
+      return real;
+    case listaEntero:
+      return entero;
+    case listaBooleano:
+      return booleano;
+    case listaCaracter:
+      return caracter;
+    case error:
+      return error;
+    default:
+      fprintf(stderr, "Error en listaATipo(), no se conoce el tipo dato (%s)\n", tipoAString(ts));
+      exit(EXIT_FAILURE);
+  }
+}
+
 int esLista(tSimbolo tipo_dato){
   return tipo_dato == listaEntero || tipo_dato == listaReal || tipo_dato == listaBooleano || tipo_dato == listaCaracter;
 }
@@ -273,9 +309,16 @@ void comprobarAsignacion(char* id, tSimbolo ts) {
       sprintf(msgError, "ERROR SINTÁCTICO: se intenta asignar a %s, y no es una variable\n", id);
       yyerror(msgError);
     } else {
-      if (ts == error || ts != TS[i].tipoDato) {
-        sprintf(msgError, "ERROR SINTÁCTICO: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
-        yyerror(msgError);
+      if (TS[i].tipoDato == listaBooleano || TS[i].tipoDato == listaReal || TS[i].tipoDato == listaEntero || TS[i].tipoDato == listaCaracter){
+        if (ts == error || ts != listaATipo(TS[i].tipoDato)) {
+          sprintf(msgError, "ERROR SINTÁCTICO: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
+          yyerror(msgError);
+        }
+      }else{
+        if (ts == error || ts != TS[i].tipoDato) {
+          sprintf(msgError, "ERROR SINTÁCTICO: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
+          yyerror(msgError);
+        }
       }
     }
   }
@@ -326,74 +369,109 @@ tSimbolo eq(tSimbolo ts1, tSimbolo ts2) {
 
   return booleano;
 }
-
-tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
-  if (ts1 == error || ts2 == error)
-    return error;
-
-  switch(atr){
-    case 0: // *
-      if(ts1 == entero && ts2 == entero)
-        return entero;
-      else if(ts1 == real && ts2 == real)
-        return real;
-      else if((ts1 == entero || ts1 == real) && (ts2 == entero && ts2 == real))
-        return real;
-      else{
-        sprintf(msgError, "ERROR SINTÁCTICO: operador * no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
-        yyerror(msgError);
-        return error;
-      }
-      break;
-    case 1: // /
-      break;
-    case 2: // or
-      if(ts1 == booleano && ts2 == booleano)
-        return booleano;
-      else{
-        sprintf(msgError, "ERROR SINTÁCTICO: operador or no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
-        yyerror(msgError);
-        return error;
-      }
-      break;
-    case 3: // and
-      if(ts1 == booleano && ts2 == booleano)
-        return booleano;
-      else{
-        sprintf(msgError, "ERROR SINTÁCTICO: operador and no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
-        yyerror(msgError);
-        return error;
-      }
-      break;
-    case 4:// xor
-      if(ts1 == booleano && ts2 == booleano)
-        return booleano;
-      else{
-        sprintf(msgError, "ERROR SINTÁCTICO: operador xor no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
-        yyerror(msgError);
-        return error;
-      }
-      break;
-    case 5://  ==
-      break;
-    case 6:// <
-      break;
-    case 7:// >
-      break;
-    case 8: // +
-      if(ts1 == entero && ts2 == entero)
-        return entero;
-      else if(ts1 == real && ts2 == real)
-        return real;
-      else if((ts1 == entero || ts1 == real) && (ts2 == entero && ts2 == real))
-        return real;
-      else{
-        sprintf(msgError, "ERROR SINTÁCTICO: operador + no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2));
-        yyerror(msgError);
-        return error;
-      }
-      break;
-  }
+tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) { 
+  if (ts1 == error || ts2 == error) 
+    return error; 
+ 
+  switch(atr){ 
+    case 0: // * 
+      if(ts1 == entero && ts2 == entero) 
+        return entero; 
+      else if(ts1 == real && ts2 == real) 
+        return real; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador * no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 1: // / 
+      if(ts1 == entero && ts2 == entero) 
+        return entero; 
+      else if(ts1 == real && ts2 == real) 
+        return real; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador / no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 2: // or 
+      if(ts1 == booleano && ts2 == booleano) 
+        return booleano; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador or no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 3: // and 
+      if(ts1 == booleano && ts2 == booleano) 
+        return booleano; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador and no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 4:// xor 
+      if(ts1 == booleano && ts2 == booleano) 
+        return booleano; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador xor no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 5://  == 
+      if(ts1 == booleano && ts2 == booleano) 
+        return booleano; 
+      else if(ts1 == caracter && ts2 == caracter) 
+        return booleano; 
+      else if(ts1 == entero && ts2 == entero) 
+        return booleano; 
+      else if(ts1 == real && ts2 == real) 
+        return booleano; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador == no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 6:// < 
+      if(ts1 == entero && ts2 == entero) 
+        return entero; 
+      else if(ts1 == real && ts2 == real) 
+        return real; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador < no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 7:// > 
+      if(ts1 == entero && ts2 == entero) 
+        return entero; 
+      else if(ts1 == real && ts2 == real) 
+        return real; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador > no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+    case 8: // + 
+      if(ts1 == entero && ts2 == entero) 
+        return entero; 
+      else if(ts1 == real && ts2 == real) 
+        return real; 
+      else{ 
+        sprintf(msgError, "ERROR SINTÁCTICO: operador + no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error; 
+      } 
+      break; 
+  } 
 }
 
 void menosUnarioAplicable(tSimbolo ts){
@@ -497,12 +575,12 @@ bloque : declar_de_variable_locales bloque
     
 
 
-declar_de_variable_locales :  TIPO  declaracion_v PYC               {tipoTmp = $1.atrib;}
+declar_de_variable_locales :  TIPO  declaracion_v PYC               
 		| error IDEN
 		| error PYC {yyerrok;}
 		;
                 
-declaracion_v :   IDEN   {insertarVariable($1.lexema, NONEDIM);}
+declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDIM);}
                 | IDEN COMA declaracion_v  {insertarVariable($1.lexema, NONEDIM);}
                 | IDEN ASIG expresion     {insertarVariable($1.lexema, NONEDIM); comprobarAsignacion($1.lexema, $3.tipo);}
                 ;
@@ -568,7 +646,7 @@ argumentosLlamada : expresion COMA argumentosLlamada
             ;
 
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
-            | IDEN                                                    {buscarEntrada($1.lexema);}
+            | IDEN                                                    {$$.tipo = buscarEntrada($1.lexema);}
             | CONS                                                    {$1.tipo = tipoCons($1.lexema);}
             | MENOS CONS                                              {$2.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
             | PARIZQ expresion PARDER
@@ -579,7 +657,7 @@ expresion    : expresion OPERADORBIN expresion                        {$$.tipo =
             | error
             ;
 
-tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));tipoTmp = $1.atrib; insertarVariable($6.lexema, 4 ); comprobarAsignacion($6.lexema, $9.tipo);}
+tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));tipoTmp = aTipoLista($1.atrib); insertarVariable($6.lexema, 4 ); comprobarAsignacion($6.lexema, $9.tipo);}
                                                                                                         //Como se recupera el valor de la cons para meterlo como dimensión????
 iden_lista: IDEN CORIZQ CONS CORDER  {$$.tipo=buscarEntrada($1.lexema);}
 
