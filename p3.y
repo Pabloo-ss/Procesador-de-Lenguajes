@@ -495,7 +495,7 @@ void comprobarDevolver(tSimbolo ts){
   int funcionEncontrada = 0;
 
   while (i >= 1 && !funcionEncontrada) {
-    funcionEncontrada = marcaEncontrada && TS[i].entrada == funcion;
+    funcionEncontrada = !marcaEncontrada && TS[i].entrada == funcion;
     marcaEncontrada = (!marcaEncontrada && TS[i].entrada == marca) ||
                       (marcaEncontrada && TS[i].entrada == parametro_formal);
     --i;
