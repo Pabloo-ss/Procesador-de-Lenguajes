@@ -168,12 +168,14 @@ tSimbolo tipoCons(char* cons){
       default: a = entero;
   }
 
-  for(int i = 0; i != '\0'; i++){
+  
+  for(int i = 0; i != '\n'; i++){
     if(*(cons + i) == '.'){
       a = real;
 
     }   
   }
+  
 
   return a;
 }
@@ -201,6 +203,7 @@ void imprimir() {
         fprintf(stderr, "Error en imprimir(), no debería salir\n");
         exit(EXIT_FAILURE);
     }
+    if(i==TOPE)printf("-------------------------------------------------\n");
   }
 }
 
@@ -270,8 +273,7 @@ void insertarMarca() {
 
 void vaciarEntradas() {
   // Hasta la última marca borramos todo
-  while (TS[TOPE].entrada != marca)
-    --TOPE;
+  while (TS[TOPE].entrada != funcion) --TOPE;
   // Elimina la última marca
   --TOPE;
 }
@@ -317,6 +319,7 @@ tSimbolo buscarID(char* id) {
 
 void comprobarAsignacion(char* id, tSimbolo ts) {
   int i = buscarEntrada(id);
+  
   if (i >= 0) {
     if (TS[i].entrada != variable) {
       sprintf(msgError, "ERROR SINTÁCTICO: se intenta asignar a %s, y no es una variable\n", id);
@@ -324,7 +327,7 @@ void comprobarAsignacion(char* id, tSimbolo ts) {
     } else {
       if (esLista(TS[i].tipoDato)){
         if (ts == error || ts != listaATipo(TS[i].tipoDato)) {
-          sprintf(msgError, "ERROR SINTÁCTICO1: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
+          sprintf(msgError, "ERROR SINTÁCTICO: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
           yyerror(msgError);
         }
       }else{
@@ -439,16 +442,15 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       } 
     break; 
     case 6:// < 
-      if(ts1 == entero && ts2 == entero) return entero; 
-      else if(ts1 == real && ts2 == real) return real; 
-      else{ 
+      if(!(ts1 == entero && ts2 == entero)|| !(ts1 == real && ts2 == real)){
         sprintf(msgError, "ERROR SINTÁCTICO: operador < no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
         yyerror(msgError); 
-        return error; 
-      } 
+        return error;
+      }
+      return booleano;
     break; 
     case 7:// > 
-    if(ts1 == entero && ts2 == entero) return entero; 
+    if(ts1 == entero && ts2 == entero) return booleano; 
     else if(ts1 == real && ts2 == real) return real; 
     else{ 
       sprintf(msgError, "ERROR SINTÁCTICO: operador > no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
@@ -495,7 +497,7 @@ void comprobarDevolver(tSimbolo ts){
   int funcionEncontrada = 0;
 
   while (i >= 1 && !funcionEncontrada) {
-    funcionEncontrada = !marcaEncontrada && TS[i].entrada == funcion;
+    funcionEncontrada = marcaEncontrada && TS[i].entrada == funcion;
     marcaEncontrada = (!marcaEncontrada && TS[i].entrada == marca) ||
                       (marcaEncontrada && TS[i].entrada == parametro_formal);
     --i;
@@ -510,6 +512,8 @@ void comprobarDevolver(tSimbolo ts){
     yyerror(msgError);
   }
 }
+
+
 
 
 /* * Fin de funciones y procedimientos para manejo de la TS */
@@ -575,7 +579,7 @@ declar_de_variable_locales :  TIPO  declaracion_v PYC
                 
 declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDIM);}
                 | IDEN COMA declaracion_v  {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM);}
-                | IDEN ASIG expresion     {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM); comprobarAsignacion($1.lexema, $3.tipo);}
+                | IDEN ASIG expresion     {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM); }
                 ;
 
 declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema);} argumentos PARDER inicio_de_bloque { Subprog = 1;}
@@ -602,9 +606,7 @@ sentencia_asignacion : IDEN ASIG expresion                        {comprobarAsig
                       | iden_lista ASIG expresion                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
-/*
-TODO Arriab en sentencia_asignacion creo que hay que hacer un metodo que devuelva el tipo que tiene ese identificador.
-*/
+
 sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER                                          {isBooleana($2.tipo);}
             | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
             ;
@@ -617,8 +619,8 @@ sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER   {isBooleana($5.tipo);} 
 
-sentencia_return : DEVOLVER IDEN PYC                {buscarEntrada($2.lexema); comprobarDevolver($2.tipo); $$.tipo = buscarID($2.lexema);}
-                | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo); $$.tipo = $2.tipo;}
+sentencia_return : DEVOLVER IDEN PYC                {imprimir();buscarEntrada($2.lexema); comprobarDevolver($2.tipo); $$.tipo = buscarID($2.lexema);}
+                | DEVOLVER CONS PYC                 {imprimir();$$.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo);}
                 ;
 
 llamada_func : IDEN PARIZQ argumentosLlamada PARDER    {buscarEntrada($1.lexema);}
@@ -631,7 +633,7 @@ cadena_expresion : expresion
                 | CADENA
                 ;
 
-argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);imprimir();}
+argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);}
             | TIPO IDEN                                               {insertarParametro($1.atrib, $2.lexema);}
             | error
             ;
@@ -648,7 +650,7 @@ argumentosLlamada : expresion COMA argumentosLlamada
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
             | IDEN                                                    {$$.tipo = $1.tipo;} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
             | CONS                                                    {$$.tipo = tipoCons($1.lexema);}
-            | MENOS CONS                                              {$2.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
+            | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
             | PARIZQ expresion PARDER
             | OPERADORUNARIO expresion                                {opUnarioAplicable($2.tipo);}
             | expresion MENOS expresion
@@ -671,8 +673,8 @@ iden_lista: IDEN CORIZQ CONS CORDER  {$$.tipo=aTipoLista($1.tipo);}
             | %empty
             ;*/
 
-decl_tipo_comp : CONS COMA decl_tipo_comp                         {$1.tipo = tipoCons($1.lexema);}
-                  | CONS                                          {$1.tipo = tipoCons($1.lexema);}
+decl_tipo_comp : CONS COMA decl_tipo_comp                         {$$.tipo = tipoCons($1.lexema);}
+                  | CONS                                          {$$.tipo = tipoCons($1.lexema);}
                   ; 
 
 /*<decl_tipo_comp_real> ::= <real>, <decl_tipo_comp_real>

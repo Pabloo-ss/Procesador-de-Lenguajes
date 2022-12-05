@@ -1,11 +1,10 @@
 principal{
 
     ent e1 , e2 = 3;
-    real r1 ;
-    car c1 ;
+    real r1 = 3.2;
+    car c1 = a;
     booleano b1 ;
     ent lista[4]  le1 =[3,4,6,1];
-    real lista[1]  lr2 =[3.1];
     car lista[2]  lc3 =['r', 'e'];
     booleano lista[3]  lb4 =[verdadero, falso, 1];
 
@@ -14,6 +13,7 @@ principal{
     
     ent funcionA (ent pe1, real pr2, car pc3){
         ent fe1, fe2 ;
+        real fr3;
         
         car funcionB (car pc1, booleano pb1){
             real fr1, fr2 ;
@@ -22,36 +22,36 @@ principal{
                 devolver e;
             }
             
-            real x1 ;
-            x1= 1.3 ;
-            ent c2 = 0;
-            si c2 > 10{
-                c2 = c2 - 1 ;
+            real rx1 = 3.1 ;
+            car c2 = 'a';
+            si rx1 < 10.2{
+                rx1 = rx1 - 1.5 ;
             }sino{
-                x1= 3.1 ;
+                rx1 = 3.1 ;
             }
-            devolver x1;
+            devolver c2;
 
         }
         devolver fe1 ;
     }
 
     real funcionD(real x){
-    
-        devolver x;
+        real rx4 = x;
+        devolver rx4;
     }
              
 
-    real funcionE(real x){
-        real y = x + 1.2;
-        devolver y;
+    real funcionE(real y){
+        real x = y + 1.2;
+        devolver x;
     }
 
+        real º;
     funcionA(funcionB(funcionC('r'), verdadero), funcionD(funcionE(3.2)), 'c');
 
     xf= funcionC (verdadero, 10);
     x2= xf*(funcionC(false,1)-funcionC(true,23))/10.0;
-    mientras (x2*funcionC(false,1)-xf <10.0){
+    mientras (xf <10.0){
         x2= x2*xf ;
     }
 
