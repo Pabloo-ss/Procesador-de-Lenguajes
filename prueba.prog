@@ -24,7 +24,7 @@ principal{
             
             real rx1 = 3.1 ;
             car c2 = 'a';
-            si rx1 < 10.2{
+            si rx1 < 10.2 {
                 rx1 = rx1 - 1.5 ;
             }sino{
                 rx1 = 3.1 ;
@@ -46,15 +46,9 @@ principal{
         devolver x;
     }
 
-        real º;
-    funcionA(funcionB(funcionC('r'), verdadero), funcionD(funcionE(3.2)), 'c');
-
-    xf= funcionC (verdadero, 10);
-    x2= xf*(funcionC(false,1)-funcionC(true,23))/10.0;
-    mientras (xf <10.0){
-        x2= x2*xf ;
-    }
+    
 
     devolver 0;
+        real º;
     }
     
