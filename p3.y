@@ -238,8 +238,11 @@ void insertarEntrada(tEntrada te, char* nombre, tSimbolo tipo_dato, int nParam, 
 // actual. Si no lo encuentra, devuelve -1. No gestiona errores!
 int buscarEntrada(char* id) {
   int i = TOPE;
-  while(i >= 0 && (TS[i].entrada == parametro_formal || strcmp(id, TS[i].nombre)))
+  while(i > 0){
+    if(!(TS[i].entrada == parametro_formal || strcmp(id, TS[i].nombre)))
+      break;
     --i;
+  }
 
   if (i < 0) {
     sprintf(msgError, "ERROR SINTÁCTICO: identificador %s no declarado\n", id);
@@ -255,7 +258,7 @@ int buscarEntrada(char* id) {
 
 void insertarMarca() {
   // Metemos la marca
-  insertarEntrada(marca, "", -1, -1, -1);
+  insertarEntrada(marca, " ", -1, -1, -1);
   // Si es subprograma añadimos las variables al bloque
   if (Subprog) {
     for (int i = TOPE - 1; TS[i].entrada != funcion; --i) {
@@ -267,7 +270,7 @@ void insertarMarca() {
 
 void vaciarEntradas() {
   // Hasta la última marca borramos todo
-  while (TS[TOPE].entrada != funcion) --TOPE;
+  while (TS[TOPE].entrada != marca) --TOPE;
   // Elimina la última marca
   --TOPE;
   
@@ -499,7 +502,7 @@ void comprobarDevolver(tSimbolo ts){
   if (i <= 0) {
     sprintf(msgError, "ERROR SINTÁCTICO: return no asignado a ninguna función, e i = %i \n",i);
     yyerror(msgError);
-  } else if (ts != error && ts != TS[i].tipoDato) {
+  } else if (ts != error && ts != TS[i].tipoDato && Subprog == 1) {
     sprintf(msgError, "ERROR SINTÁCTICO: return devuelve tipo %s, y función es de tipo %s\n",  tipoAString(ts), tipoAString(TS[i].tipoDato));
     yyerror(msgError);
   }
@@ -554,12 +557,12 @@ Lista Preferencias
 %%
 programa : PRINCIPAL inicio_de_bloque {insertarMarca(); }
 
-inicio_de_bloque : LLAVEIZQ bloque  ;
+inicio_de_bloque : LLAVEIZQ bloque  {}
 
 bloque : declar_de_variable_locales bloque
         | declar_de_fun bloque
         | sentencia bloque
-        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;}
+        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0; imprimir();}
         ;
     
 
@@ -574,7 +577,7 @@ declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDI
                 | IDEN ASIG expresion     {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM); }
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema);} argumentos PARDER inicio_de_bloque { Subprog = 1;}
+declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;} argumentos {insertarMarca();} PARDER inicio_de_bloque {}
                 ;
 
 sentencias :  sentencias sentencia 
@@ -594,7 +597,7 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresion PYC                     {buscarEntrada($1.lexema);comprobarAsignacion($1.lexema, $3.tipo);}
+sentencia_asignacion : IDEN ASIG expresion PYC                     {comprobarAsignacion($1.lexema, $3.tipo);}
                       | iden_lista ASIG expresion PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 

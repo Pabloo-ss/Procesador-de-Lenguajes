@@ -20,19 +20,7 @@ principal{
         ent fe1, fe2 ;
         real fr3= pr2;
         
-        car funcionB (car pc1, booleano pb1){
-            real fr1, fr2 ;
-            real rx1 = 3.1 ;
-            car c2 = pc1;
-            
-            si fr1 > fr2 {
-                rx1 = rx1 / fr1 ;
-            }sino{
-                rx1 = 3.1 ;
-            }
-        devolver c2 ;
-
-        }
+        fe1 = fe1 +3.6;
     devolver fe1 ;
     }
 
@@ -48,6 +36,5 @@ principal{
     }
 
     devolver 0;
-        real º;
-    }
+}
     

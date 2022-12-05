@@ -1,46 +1,49 @@
 principal{
 
-    ent a = 3;
-    ent via vib, vss
-    real vf vff ;
-    car $ ;
-    booleano vb ;
-    ent lista[4]  l1 =[3,4,6,1];
+    ent e1 , e2 = 3;
+    rea$ r1 = 3.2;
+
+    r1 = 2.2;
+
+    car c1 = 'a';
+    booleano b1 ;
+    ent lista[4]  le1 =[3,4,6,1];
+    car lista[2]  lc3 =['r', 'e'];
+    booleano lista[3]  lb4 =[verdadero, falso, 1];
 
 
-    ent funcionA (ent e1,  r2, car c3){
-        ent x1, x2 ;
-        
-        car funcionB (car b1, booleano b2){
-        
-            real xf, x2 ;
-            
-            car funcionC(car c){
-                ent h = 3 + 4;
-                ent j = h + 4;
-                car $ ;
-                car x = l1[1] + 1;
-                devolver x;
-            }
-            
-            real x1 ;
-            
-            x1= 1.3 ;
-            si c2 > 10{
-                c2 = c2 - 1 ;
-            }sino{
-                x1= 3.1 ;
-            }
-            devolver x1;
-        }
-        devolver x1 ;
+    le1[1] = 3.3 + e1;
+
+    ent funcionC(ent e3){
+        car c4='p';
+        ent e3;
+        ent e = e3 + 1;
+    devolver e;
     }
 
-    xf= funcionC (verdadero, 10);
-    x2= xf*(2-3)10.0 + (18 + ant);
-    mientras (x2  xf * 3 < 10.2 verdadero){
-        x2= x2*xf ;
+    ent funcionA (ent pe1, real pr2, car pc3){
+        ent fe1, fe2 ;
+        real fr3= pr2;
+        
+        si(verdadero > 3){
+            fe1 = fe1 + 3.5;
+        }sino{
+            fr3 = 3.4 * 5.1;
+        }
+    devolver fe1 ;
+    }
+
+    real funcionD(real x){
+        real rx4 = x;
+        devolver rx4;
+    }
+             
+
+    real funcionE(real y){
+        real x = y + 1;
+        devolver x;
     }
 
     devolver 0;
 }
+    
