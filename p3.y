@@ -338,6 +338,7 @@ void comprobarAsignacion(char* id, tSimbolo ts) {
         }
       }
     }
+    
   }
 }
 
@@ -388,6 +389,7 @@ tSimbolo eq(tSimbolo ts1, tSimbolo ts2) {
 }
 tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) { 
   if (ts1 == error || ts2 == error) return error; 
+  
   switch(atr){ 
     case 0: // * 
       if(ts1 == entero && ts2 == entero) return entero; 
@@ -432,7 +434,7 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       return booleano;
     break; 
     case 5://  == 
-      if(!(ts1 == entero && ts2 == entero)|| !(ts1 == real && ts2 == real)|| !(ts1 == booleano && ts2 == booleano)|| !(ts1 == caracter && ts2 == caracter) ){
+      if(!((ts1 == entero && ts2 == entero)|| (ts1 == real && ts2 == real)|| (ts1 == booleano && ts2 == booleano)|| (ts1 == caracter && ts2 == caracter)) ){
         sprintf(msgError, "ERROR SINTÁCTICO: operador == no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
         yyerror(msgError); 
         return error;
@@ -440,7 +442,7 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       return booleano;
     break; 
     case 6:// < 
-      if(!(ts1 == entero && ts2 == entero)|| !(ts1 == real && ts2 == real)){
+      if(!((ts1 == entero && ts2 == entero)|| (ts1 == real && ts2 == real))){
         sprintf(msgError, "ERROR SINTÁCTICO: operador < no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
         yyerror(msgError); 
         return error;
@@ -448,7 +450,7 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       return booleano;
     break; 
     case 7:// > 
-     if(!(ts1 == entero && ts2 == entero)|| !(ts1 == real && ts2 == real)){
+     if(!((ts1 == entero && ts2 == entero)|| (ts1 == real && ts2 == real))){
         sprintf(msgError, "ERROR SINTÁCTICO: operador > no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
         yyerror(msgError); 
         return error;
@@ -464,6 +466,7 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       return error; 
       } 
     break; 
+    
   } 
 }
 
@@ -492,14 +495,12 @@ void comprobarDevolver(tSimbolo ts){
   int i = TOPE;
   int marcaEncontrada = 0;
   int funcionEncontrada = 0;
-
-  while (i >= 1 && !funcionEncontrada) {
-    funcionEncontrada = marcaEncontrada && TS[i].entrada == funcion;
-    marcaEncontrada = (!marcaEncontrada && TS[i].entrada == marca) ||
-                      (marcaEncontrada && TS[i].entrada == parametro_formal);
+int fin =0;
+  while (i >1 && (TS[i].entrada != funcion || TS[i].entrada == marca )) {
+    
     --i;
   }
-  if (funcionEncontrada) ++i;
+  if(i==1)i++;
   
   if (i <= 0) {
     sprintf(msgError, "ERROR SINTÁCTICO: return no asignado a ninguna función, e i = %i \n",i);
@@ -557,9 +558,9 @@ Lista Preferencias
 //Solo se acepta un argumento en la funcion
 
 %%
-programa : PRINCIPAL inicio_de_bloque;
+programa : PRINCIPAL inicio_de_bloque {insertarMarca(); }
 
-inicio_de_bloque : LLAVEIZQ bloque  {insertarMarca(); }
+inicio_de_bloque : LLAVEIZQ bloque  ;
 
 bloque : declar_de_variable_locales bloque
         | declar_de_fun bloque
@@ -579,7 +580,7 @@ declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDI
                 | IDEN ASIG expresion     {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM); }
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema);insertarMarca();} argumentos PARDER inicio_de_bloque { Subprog = 1;}
+declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema);} argumentos PARDER inicio_de_bloque { Subprog = 1;}
                 ;
 
 sentencias :  sentencias sentencia 
@@ -599,7 +600,7 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresion PYC                     {comprobarAsignacion($1.lexema, $3.tipo);}
+sentencia_asignacion : IDEN ASIG expresion PYC                     {buscarEntrada($1.lexema);comprobarAsignacion($1.lexema, $3.tipo);}
                       | iden_lista ASIG expresion PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
@@ -616,7 +617,7 @@ sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER   {isBooleana($5.tipo);} 
 
-sentencia_return : DEVOLVER IDEN PYC                {$$.tipo = buscarEntrada($2.lexema); comprobarDevolver($2.tipo); }
+sentencia_return : DEVOLVER IDEN PYC                {imprimir();$$.tipo = buscarEntrada($2.lexema); comprobarDevolver($2.tipo); }
                 | DEVOLVER CONS PYC                 {$$.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo);}
                 ;
 
@@ -645,7 +646,7 @@ argumentosLlamada : expresion COMA argumentosLlamada
  TODO En expresion he cambiado lo que hay comentado en IDEN  creo que cuando arreglemos el tipoConst() funciona
 */
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
-            | IDEN                                                    {$$.tipo = tipoCons($1.lexema);} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
+            | IDEN                                                    {$$.tipo = $1.tipo;} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
             | CONS                                                    {$$.tipo = tipoCons($1.lexema);}
             | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
             | PARIZQ expresion PARDER
