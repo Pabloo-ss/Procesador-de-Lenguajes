@@ -2,11 +2,7 @@
 /*
 ! ya lee todo el programa completo aunque falla al meter las cosas en la ts. Creo que si se arregla 
 ! lo de abajo se arregla
-TODO Falla el return que borra toda la tabla de simbolos no solo hasta una marca o funcion 
-
-TODO y lo de los tipos de las variables que se rayan
-
-TODO creo que solo eso pero no estoy seguro
+TODO Falla en los operadores, al realizar la operacion no se puede devolver entero o flotante unicamente hay que rehacer el metodo creo* 
 */
 %{
 #include <stdlib.h>
@@ -155,9 +151,7 @@ int esReal(tSimbolo tipo_dato){
   return tipo_dato == real;
 }
 
-/*
-TODO hay que rehacer este metodo, fallan los enteros y reales
-*/
+
 tSimbolo tipoCons(char* cons){
   tSimbolo a = error;
 
@@ -401,7 +395,7 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       } 
     break; 
     case 1: // / 
-      if(ts1 == entero && ts2 == entero) return entero; 
+      if(ts1 == entero && ts2 == entero) return real; 
       else if(ts1 == real && ts2 == real) return real; 
       else{ 
       sprintf(msgError, "ERROR SINTÁCTICO: operador / no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
@@ -495,12 +489,12 @@ void comprobarDevolver(tSimbolo ts){
   int i = TOPE;
   int marcaEncontrada = 0;
   int funcionEncontrada = 0;
-int fin =0;
+  
   while (i >1 && (TS[i].entrada != funcion || TS[i].entrada == marca )) {
     
     --i;
   }
-  if(i==1)i++;
+  
   
   if (i <= 0) {
     sprintf(msgError, "ERROR SINTÁCTICO: return no asignado a ninguna función, e i = %i \n",i);
@@ -617,8 +611,8 @@ sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER   {isBooleana($5.tipo);} 
 
-sentencia_return : DEVOLVER IDEN PYC                {imprimir();$$.tipo = buscarEntrada($2.lexema); comprobarDevolver($2.tipo); }
-                | DEVOLVER CONS PYC                 {$$.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo);}
+sentencia_return : DEVOLVER IDEN PYC                {$2.tipo = buscarID($2.lexema); comprobarDevolver($2.tipo); }
+                | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo);}
                 ;
 
 llamada_func : IDEN PARIZQ argumentosLlamada PARDER PYC   {buscarEntrada($1.lexema);}
@@ -642,9 +636,7 @@ argumentosLlamada : expresion COMA argumentosLlamada
             ;
 
 
-/*
- TODO En expresion he cambiado lo que hay comentado en IDEN  creo que cuando arreglemos el tipoConst() funciona
-*/
+
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
             | IDEN                                                    {$$.tipo = $1.tipo;} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
             | CONS                                                    {$$.tipo = tipoCons($1.lexema);}
@@ -659,9 +651,7 @@ expresion    : expresion OPERADORBIN expresion                        {$$.tipo =
 
 tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tipo_comp CORDER PYC   {comprobarDimen(tipoCons($4.lexema));tipoTmp = aTipoLista($1.atrib); insertarVariable($6.lexema, atoi($4.lexema)); comprobarAsignacion($6.lexema, $9.tipo);}
 
-/*
- TODO AQUI HE CAMBIADO aTipoLista en el ident_lista
-*/                                                                                                        
+                                                                                                      
 iden_lista: IDEN CORIZQ CONS CORDER  {$$.tipo=aTipoLista($1.tipo);}
 
 /*decl_tipo_comp : decl_tipo_comp_ent

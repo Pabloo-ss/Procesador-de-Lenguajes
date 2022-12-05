@@ -33,7 +33,7 @@ principal{
         devolver c2 ;
 
         }
-    devolver fr3 ;
+    devolver fe1 ;
     }
 
     real funcionD(real x){
