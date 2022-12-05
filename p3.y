@@ -60,6 +60,7 @@ typedef struct {
 
 long int TOPE=0 ; /* Tope de la pila */
 unsigned int Subprog = 0 ; /* Indicador de comienzo de bloque de un Subprog */
+int numArgs[2] = {0,0};
 entradaTS TS[MAX_TS] ; /* Pila de la tabla de símbolos */
 tSimbolo tipoTmp; // Tipo auxiliar para declaración de variables
 
@@ -251,6 +252,11 @@ int buscarEntrada(char* id) {
   return i;
 }
 
+int numeroArg(char * id){
+  int i = buscarEntrada(id);
+
+  return TS[i].parametros;
+}
 
 /* *Fin funciones auxiliares */
 
@@ -508,6 +514,13 @@ void comprobarDevolver(tSimbolo ts){
   }
 }
 
+void comprobarArg(tSimbolo ts){
+  if(numArgs[0] > 0 && (TS[numArgs[1] + numArgs[0]].tipoDato != ts)){
+    sprintf(msgError, "ERROR SINTÁCTICO: tipo %s no se corresponde con el del argumento %s\n", tipoAString(ts), tipoAString(TS[numArgs[1] + numArgs[0]].tipoDato));
+    yyerror(msgError);
+  }else
+    numArgs[0]--;
+}
 
 
 
@@ -618,7 +631,7 @@ sentencia_return : DEVOLVER IDEN PYC                {$2.tipo = buscarID($2.lexem
                 | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo);}
                 ;
 
-llamada_func : IDEN PARIZQ argumentosLlamada PARDER PYC   {buscarEntrada($1.lexema);}
+llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema); numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER PYC   
 
 lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion
@@ -633,8 +646,8 @@ argumentos : TIPO IDEN COMA argumentos                                {insertarP
             | error
             ;
           
-argumentosLlamada : expresion COMA argumentosLlamada
-            | expresion
+argumentosLlamada : expresion COMA argumentosLlamada                  {comprobarArg($1.tipo);}
+            | expresion                                               {comprobarArg($1.tipo);}
             | 
             ;
 

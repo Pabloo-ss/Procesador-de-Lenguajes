@@ -38,11 +38,11 @@ principal{
         devolver rx4;
     }
              
-
     real funcionE(real y){
         real x = y + 1;
         devolver x;
     }
+
 
     devolver 0;
 }
