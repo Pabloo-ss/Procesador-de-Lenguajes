@@ -43,6 +43,11 @@ principal{
         devolver x;
     }
 
+    funcionE(3, verdadero);
+
+    funcionD(4.5);
+
+    funcionA(3, 3.5 , 'a', 5);
 
     devolver 0;
 }

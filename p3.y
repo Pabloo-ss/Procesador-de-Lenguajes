@@ -61,6 +61,7 @@ typedef struct {
 long int TOPE=0 ; /* Tope de la pila */
 unsigned int Subprog = 0 ; /* Indicador de comienzo de bloque de un Subprog */
 int numArgs[2] = {0,0};
+int numArgs_llevados =0;
 entradaTS TS[MAX_TS] ; /* Pila de la tabla de símbolos */
 tSimbolo tipoTmp; // Tipo auxiliar para declaración de variables
 
@@ -254,7 +255,7 @@ int buscarEntrada(char* id) {
 
 int numeroArg(char * id){
   int i = buscarEntrada(id);
-
+  printf("parametros %i \n",TS[i].parametros);
   return TS[i].parametros;
 }
 
@@ -515,11 +516,18 @@ void comprobarDevolver(tSimbolo ts){
 }
 
 void comprobarArg(tSimbolo ts){
-  if(numArgs[0] > 0 && (TS[numArgs[1] + numArgs[0]].tipoDato != ts)){
-    sprintf(msgError, "ERROR SINTÁCTICO: tipo %s no se corresponde con el del argumento %s\n", tipoAString(ts), tipoAString(TS[numArgs[1] + numArgs[0]].tipoDato));
+  if(numArgs[0]<numArgs_llevados ){
+    sprintf(msgError, "ERROR SINTÁCTICO: Demasiados argumentos introducidos ");
     yyerror(msgError);
-  }else
-    numArgs[0]--;
+  }else{
+    if(numArgs[0] != numArgs_llevados && (TS[numArgs[1] + (numArgs[0]-numArgs_llevados)].tipoDato != ts)){
+
+      sprintf(msgError, "ERROR SINTÁCTICO: tipo %s no se corresponde con el del argumento %s\n", tipoAString(ts), tipoAString(TS[numArgs[1] + (numArgs[0]-numArgs_llevados)].tipoDato));
+      yyerror(msgError);
+    }
+
+  }
+  numArgs_llevados++;
 }
 
 
@@ -654,7 +662,7 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
 
 
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
-            | IDEN                                                    {$$.tipo = $1.tipo;} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
+            | IDEN                                                    {$$.tipo = $1.tipo;$$.lexema=$1.lexema;} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
             | CONS                                                    {$$.tipo = tipoCons($1.lexema);}
             | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
             | PARIZQ expresion PARDER
