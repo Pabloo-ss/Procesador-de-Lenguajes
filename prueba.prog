@@ -19,14 +19,15 @@ principal{
     ent funcionA (ent pe1, real pr2, car pc3){
         ent fe1, fe2 = 2;
         real fr2 = pr2;
-    real funcionD(real x){
-        real rx4 = x;
-        devolver rx4;
+        real funcionD(real x){
+            real rx4 = x;
+            devolver rx4;
     }
-        
+        funcionD(2.2);
         fe1 = fe1 + 3;
     devolver fe1 ;
     }
+
 
              
 
@@ -35,9 +36,9 @@ principal{
         devolver x;
     }
 
-    funcionE(2,2);
+    funcionE(2.2);
 
-    funcionA(3, 3.5 ,7,8);
+    funcionA(3, 3.5 ,'a');
 
     devolver 0;
 }

@@ -11,7 +11,7 @@ principal{
     booleano lista[3]  lb4 =[verdadero, falso, 1];
 
 
-    le1[1] = 3.3;
+    le1[1] = le[1] + 2.2;
 
     ent funcionC(ent e3){
         car c4='p';
@@ -24,6 +24,8 @@ principal{
                     
     devolver e;
     }
+
+    funcionD(2.2);
 
     ent funcionA (ent pe1, real pr2, car pc3){
         ent fe1, fe2 ;
@@ -42,11 +44,11 @@ principal{
         devolver x;
     }
 
-    funcionE(3.5,1);
+    funcionE(2.2);
 
-    funcionD(4.5);
-    funcionA( 3.5 , 'a');
+    funcionA( 3.5 ,'a');
 
+    funcionA(3, 3.5 ,'a',3);
 
     devolver 0;
 }

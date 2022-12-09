@@ -528,13 +528,13 @@ void comprobarDevolver(tSimbolo ts){
 
 void comprobarArg(tSimbolo ts){
   
-  if(TS[numArgs[1] + (numArgs[0]-numArgs_llevados)].tipoDato != ts)
+  if(TS[numArgs[1] + numArgs_llevados+1].tipoDato != ts)
     error_args=1;
   numArgs_llevados++;
-  printf("%d\n", numArgs_llevados);
 }
 
 void erroresArgs(){
+  //numArgs_llevados++;
   if(numArgs[0]<numArgs_llevados ){
     sprintf(msgError, "ERROR SEMANTICO: Demasiados argumentos introducidos ");
     yyerror(msgError);
@@ -542,9 +542,8 @@ void erroresArgs(){
   }else if(numArgs[0]>numArgs_llevados){
     sprintf(msgError, "ERROR SEMANTICO: Pocos argumentos introducidos ");
     yyerror(msgError);
-  }else if(numArgs[0]==numArgs_llevados){
-    sprintf(msgError, "MUY BIEN" );
-    yyerror(msgError);
+  }else if(numArgs[0]==numArgs_llevados && !error_args){
+
   }
   else if (error_args){
     sprintf(msgError, "ERROR SEMANTICO: tipo no se corresponde con los argumentos de la funcion \n");
@@ -552,6 +551,7 @@ void erroresArgs(){
     }
 
   numArgs_llevados=0;
+  error_args = 0;
 }
 
 
