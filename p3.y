@@ -31,6 +31,13 @@ typedef enum {
       parametro_formal, /* si es parametro formal */
 } tEntrada ;
 
+// Para bucles if
+typedef struct {
+  char* etiquetaEntrada;
+  char* etiquetaSalida;
+  char* etiquetaElse;
+} DescriptorDeInstrControl;
+
 //Si tEntrada es funcion, variable, o parametro-formal; indica el tipo
 
 typedef enum {
@@ -43,14 +50,15 @@ typedef enum {
       listaCaracter,
       listaBooleano,
       error
-} tSimbolo ;
-// tSimbolo indica el tipo de la variable
+} tSimbolo ;// tSimbolo indica el tipo de la variable
+
 typedef struct {
       tEntrada entrada ;
       char *nombre ;
       tSimbolo tipoDato ;
       unsigned int parametros ;
       unsigned int dimension ;
+      DescriptorDeInstrControl* descriptor; // Descriptor de control (bucles IF - intermedio)
       // int TamDim1 ; para las listas tambien no ??
 } entradaTS ;
 //Se usa para formar
@@ -71,6 +79,7 @@ typedef struct {
       char *  lexema ; /* Nombre del lexema */
       tSimbolo tipo ; /* Tipo del símbolo */
 } atributos ;
+
 
 #define YYSTYPE atributos
 
@@ -271,11 +280,11 @@ int numeroArg(char * id){
 
 void insertarMarca() {
   // Metemos la marca
-  insertarEntrada(marca, " ", -1, -1, -1);
+  insertarEntrada(marca, " ", -1, -1, -1, NULL);
   // Si es subprograma añadimos las variables al bloque
   if (Subprog) {
     for (int i = TOPE - 1; TS[i].entrada != funcion; --i) {
-      insertarEntrada(variable, TS[i].nombre, TS[i].tipoDato, -1, -1); 
+      insertarEntrada(variable, TS[i].nombre, TS[i].tipoDato, -1, -1, NULL); 
     }
     Subprog = 0;
   }
@@ -292,7 +301,7 @@ void vaciarEntradas() {
 void insertarVariable(char* id, int dimension) {
   // Comprobamos que no esté repetida la id
   idRepetida(id);
-  insertarEntrada(variable, id, tipoTmp, -1, dimension);   
+  insertarEntrada(variable, id, tipoTmp, -1, dimension, NULL);   
 }
 
 void insertarFuncion(tSimbolo tipoDato, char* id) {
@@ -315,9 +324,17 @@ void insertarParametro(tSimbolo tipoDato, char* id) {
     }
   }
   // Añadimos la entrada
-  insertarEntrada(parametro_formal, id, tipoDato, -1, NONEDIM); // ********** una vez mas de dnd sacar la dimension ************
+  insertarEntrada(parametro_formal, id, tipoDato, -1, NONEDIM, NULL); // ********** una vez mas de dnd sacar la dimension ************
   // Actualizamos el nº de parámetros de la función
   ++TS[i].parametros;
+}
+
+void insertarDescriptor(char* etqEntrada, char* etqSalida, char* etqElse) {
+  DescriptorDeInstrControl* descp = (DescriptorDeInstrControl*) malloc(sizeof(DescriptorDeInstrControl));
+  descp->etiquetaEntrada = strdup(etqEntrada);
+  descp->etiquetaSalida = strdup(etqSalida);
+  descp->etiquetaElse = strdup(etqElse);
+  insertarEntrada(descriptor, " ", -1, -1, NULL, descp);
 }
 
 tSimbolo buscarID(char* id) {
@@ -554,9 +571,159 @@ void erroresArgs(){
   error_args = 0;
 }
 
+tSimbolo tipoOp(tSimbolo ts, char * op) {
+  if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/"))
+    return ts;
 
+  if (!strcmp(op, "not") || !strcmp(op, "and") || !strcmp(op, "xor") || !strcmp(op, "or") || !strcmp(op, ">") || !strcmp(op, "<") || !strcmp(op, "=="))
+    return booleano;
+
+}
 
 /* * Fin de funciones y procedimientos para manejo de la TS */
+
+// *******  Generación código intermedio ******
+
+int hayError = 0;
+int deep = 0;
+FILE * fMain;
+FILE * fFunc;
+
+
+char* temporal() {
+  static int indice = 1;
+  char* temp = malloc(sizeof(char) * 10);
+  sprintf(temp, "temp%i", indice++);
+  return temp;
+}
+
+char* etiqueta() {
+  static int indice = 1;
+  char* etiqueta = malloc(sizeof(char) * 14);
+  sprintf(etiqueta, "etiqueta%i", indice++);
+  return etiqueta;
+}
+
+char* tipoIntermedio(tSimbolo td) {
+  if (esLista(td))
+    return "Lista";
+  else if (td == booleano)
+    return "int";
+  else
+    return tipoAString(td);
+}
+
+char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
+  char* etiqueta = temporal();
+  tSimbolo tdPrimario = ts1;
+  char* expPrimaria = exp1;
+  char* expSecundaria = exp2;
+  if (esLista(ts2) && (!strcmp("+", op) || !strcmp("*", op))) {
+    tsPrimario = ts2;
+    expPrimaria = exp2;
+    expSecundaria = exp1;
+  }
+
+  gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
+
+  if (!strcmp("#", op)) {
+    gen("%s = getTam(%s);\n", etiqueta, exp1);
+  } else if (!strcmp("?", op)) {
+    gen("%s = *(%s*)getActual(%s);\n", etiqueta, tipoIntermedio(tipoLista(td1)), exp1);
+  } else if (!strcmp("@", op)) {
+    gen("%s = *(%s*)get(%s, %s);\n", etiqueta, tipoIntermedio(tipoLista(td1)), exp1, exp2);
+  } else if (!strcmp("--", op)) {
+    gen("%s = borrarEn(%s, %s);\n", etiqueta, exp1, exp2);
+  } else if (!strcmp("%", op)) {
+    gen("%s = borrarAPartirDe(%s, %s);\n", etiqueta, exp1, exp2);
+  } else if (!strcmp("**", op)) {
+    gen("%s = concatenar(%s, %s);\n", etiqueta, exp1, exp2);
+  } else if (esLista(tsPrimario)) {
+    if (!strcmp("+", op)) {
+      gen("%s = sumarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria)
+    } else if (!strcmp("-", op)) {
+        gen("%s = restarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
+    } else if (!strcmp("*", op)) {
+      gen("%s = multiplicarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
+    } else if (!strcmp("/", op)) {
+      gen("%s = dividirLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
+    }
+  } else if (!strcmp("", exp2)) {
+    gen("%s = %s %s;\n", etiqueta, op, exp1);
+  } else {
+    gen("%s = %s %s %s;\n", etiqueta, exp1, op, exp2);
+  }
+  return etiqueta;
+}
+
+
+char* leerCte(char* cte, tSimbolo ts) {
+  if (ts == booleano) {
+    if (!strcmp("true", cte))
+      return "1";
+    else
+      return "0";
+  }
+  return cte;
+}
+
+char* insertarDato(char* id, tSimbolo ts) {
+  char* buffer = malloc(sizeof(char) * 100);
+  switch (ts) {
+    case entero:
+    case booleano:
+      sprintf(buffer, "pInt(%s)", id);
+      return buffer;
+    case real:
+      sprintf(buffer, "pFloat(%s)", id);
+      return buffer;
+    case caracter:
+      sprintf(buffer, "pChar(%s)", id);
+      return buffer;
+    default:
+      if (!hayError) {
+        sprintf(msgError, "ERROR INTERMEDIO: tipo no básico en insertarDato().\n");
+        yyerror(msgError);
+        exit(EXIT_FAILURE);
+      }
+  }
+}
+
+char* tipoImprimir(tSimbolo tipo) {
+  if (tipo == entero)
+    return "%d";
+  else if (tipo == real)
+    return "%f";
+  else if (esLista(tipo) || tipo == booleano || tipo == cadena)
+    return "%s";
+  else if (tipo == caracter)
+    return "%c";
+  else {
+    if (!hayError) {
+      sprintf(msgError, "ERROR INTERMEDIO: tipoImprimir() tipo no válido.\n");
+      yyerror(msgError);
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
+char* inicializaTipoLista(tSimbolo tipo) {
+  if (tipo == entero)
+    return "tInt";
+  else if (tipo == real)
+    return "tFloat";
+  else if (tipo == caracter)
+    return "tChar";
+  else if (tipo == booleano)
+    return "tBool";
+  else {
+    if (!hayError) {
+      sprintf(msgError, "ERROR INTERMEDIO: tipo no válido en inicializaTipoLista().\n");
+      yyerror(msgError);
+      exit(EXIT_FAILURE);
+    }
+  }
+}
 
 
 #define YYSTYPE atributos /* Cada símbolo tiene una estructura de tipo atributos */
