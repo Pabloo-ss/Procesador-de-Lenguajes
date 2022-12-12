@@ -1,0 +1,24 @@
+principal {
+  
+  ent n, curr;
+    
+
+    salida "introduce numero: " ;
+    entrada n;
+    salida " ", n, " == ";
+    curr = 2;
+
+    mientras ( curr <= n ) {
+     int d;
+     d = n / curr;
+
+      si (d * curr == n) {
+        salida "* ", curr, " ";
+        n = n / curr;
+      }
+      sino
+        curr = curr+1;
+    }
+    salida "\n";
+  
+}
