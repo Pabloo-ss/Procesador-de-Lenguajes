@@ -1,17 +1,18 @@
-principal{
-
-    ent e2, e1 = 2;
-
-    ent funcionC(ent e3, car c, ent aa){
-        real ff;
-    devolver e3;
-    }
-    car c4 = 'p';
-
-    e2 = 5 * 2 + 3 * 4;
-    e1 = 40 + 3 * e2;
-    devolver 0;
-}
-
-
+principal {
+  
+  ent n, curr;
     
+
+    salida("i");
+    entrada(n);
+    salida(" ", n, " == ");
+    curr = 2;
+
+    mientras ( curr < n ) {
+
+      ent d;
+      d = n / curr;
+    }
+    salida("\n");
+  devolver 0;
+}

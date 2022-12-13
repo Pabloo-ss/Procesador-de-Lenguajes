@@ -247,7 +247,7 @@ void insertarEntrada(tEntrada te, char* nombre, tSimbolo tipo_dato, int nParam, 
     sprintf(msgError, "ERROR SEMANTICO: La tabla de símbolos está llena\n");
     yyerror(msgError);
   }
-  // Aumentamos el tope
+  // Aumentamos el TOPE
   ++TOPE;
   // Añadimos la nueva entrada
   TS[TOPE] = entrada;
@@ -780,8 +780,9 @@ declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDI
 
 declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;gen("%s %s (",tipoIntermedio($1.atrib), $3.lexema );} argumentos {insertarMarca();gen("%s)", $5.codigo);} PARDER inicio_de_bloque 
                 ;
+llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER PYC   {erroresArgs(); gen("llamada fun");}
 
-sentencias :  sentencias {gen("{\n"); ++deep; } sentencia { --deep; gen("}\n"); }
+sentencias :  sentencias  sentencia 
             | 
             ;
 
@@ -794,11 +795,12 @@ sentencia : sentencia_asignacion
             | sentencia_for
             | tipo_variable_complejo
             | sentencia_return
+            | declar_de_variable_locales
             ;
 
 
 
-sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n}", $1.lexema, $3.codigo);}
+sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n}\n", $1.lexema, $3.codigo);}
                       | iden_lista ASIG expresiones PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
@@ -814,26 +816,76 @@ sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER {isBooleana($2.tipo
             | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
             ;
 
-sentencia_while : CONDWHILE PARIZQ expresion PARDER LLAVEIZQ sentencias LLAVEDER  {isBooleana($3.tipo);}
+/************* WHILE *****************/
 
-sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC          {buscarEntrada($3.lexema);}
+sentencia_while : CONDWHILE PARIZQ {
+                      insertarDescriptor(etiqueta(), etiqueta(), "");
+                      gen("%s:\n", TS[TOPE].descriptor->etiquetaEntrada);
+                      gen("{\n");
+                      ++deep;
+                      gen("{\n");
+                      ++deep;
+                    }
+                    expresion {
+                      isBooleana($4.tipo);
+                      gen("\n");
+                      gen("if (!%s) goto %s;\n", $4.lexema, TS[TOPE].descriptor->etiquetaSalida);
+                      --deep;
+                      gen("}\n\n");
+                    }
+                    PARDER LLAVEIZQ sentencias 
+                    {
+                      gen("goto %s;\n\n", TS[TOPE-1].descriptor->etiquetaEntrada);
+                      --deep;
+                      gen("}\n");
+                      gen("%s: {}\n", TS[TOPE-1].descriptor->etiquetaSalida);
+                      --TOPE;
+                    } LLAVEDER  {}
 
-sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;            
+
+
+
+/************* ENTRADA *****************/
+sentencia_entrada : ENTRADA PARIZQ IDEN PARDER PYC          {tSimbolo td = buscarID($3.lexema);
+                                                              if (td == booleano) {
+                                                              gen("char aux[32];\n");
+                                                              gen("scanf(\"%s\", aux);\n", "%s");
+                                                              gen("%s = aInt(aux);\n", $3.lexema);
+                                                              } else {
+                                                              gen("scanf(\"%s\", &%s);\n", tipoImprimir(td), $3.lexema);
+                                                              }
+                                                            } ;
+                                                            
+ 
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER   {isBooleana($5.tipo);} 
+
+/************* RETURN *****************/
 
 sentencia_return : DEVOLVER IDEN PYC                {$2.tipo = buscarID($2.lexema); comprobarDevolver($2.tipo); gen("return %s;\n", $2.lexema);}
                 | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo); gen("return %s;\n", $2.lexema);}
                 ;
 
-llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER PYC   {erroresArgs(); gen("llamada fun");}
 
-lista_salida : lista_salida COMA cadena_expresion
-            | cadena_expresion
+/************* SALIDA *****************/
+
+sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC { gen("printf(\"\\n\");\n"); };            
+
+lista_salida : lista_salida COMA expresion_cout
+            | expresion_cout
             ;
 
-cadena_expresion : expresion 
-                | CADENA
+expresion_cout: cadena_expresion { gen("printf(\"%s \", %s);\n", tipoImprimir($1.tipo), $1.lexema); gen("fflush(stdout);\n"); } ;
+
+cadena_expresion : expresion {
+                    if ($1.tipo == booleano) {
+                      $$.lexema = malloc(sizeof(char) * (8 + strlen($1.lexema)));
+                      sprintf($$.lexema, "aBool(%s)", $1.lexema);
+                    } else
+                      strcpy($$.lexema, $1.lexema);
+                    $$.tipo = $1.tipo;
+                  }
+                | CADENA { strcpy($$.lexema, $1.lexema); $$.tipo = $1.tipo;}
                 ;
 
 argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);sprintf($$.codigo, "%s %s, %s", tipoIntermedio($1.atrib), $2.lexema, $4.codigo);}

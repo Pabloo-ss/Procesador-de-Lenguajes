@@ -19,7 +19,7 @@ otros	[\n\t ]
 "salida"					                                {return SALIDA;}
 "devolver"					                                {return DEVOLVER;}
 "principal"					                                {return PRINCIPAL;}
-\"[^\"]+\"					                                {return CADENA;}
+\"[^\"]*\"					                                {return CADENA;}
 ","						                                    {return COMA;}
 "-"						                                    {return MENOS;}
 
