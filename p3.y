@@ -101,13 +101,13 @@ char* tipoAString(tSimbolo tipo_dato) {
     case caracter:
       return "char";
     case listaReal:
-      return "list_of float";
+      return "list float";
     case listaEntero:
-      return "list_of int";
+      return "list int";
     case listaCaracter:
-      return "list_of char";
+      return "list char";
     case listaBooleano:
-      return "list_of bool";
+      return "list bool";
     case error:
       return "error";
     default:
@@ -612,13 +612,13 @@ char* etiqueta() {
   return etiqueta;
 }
 
-char* tipoIntermedio(tSimbolo td) {
-  if (esLista(td))
+char* tipoIntermedio(tSimbolo ts) {
+  if (esLista(ts))
     return "Lista";
-  else if (td == booleano)
+  else if (ts == booleano)
     return "int";
   else
-    return tipoAString(td);
+    return tipoAString(ts);
 }
 
 char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
@@ -777,31 +777,32 @@ Lista Preferencias
 %%
 programa : PRINCIPAL {
               gen("#include <stdlib.h>\n");
-              gen("#include <stdio.h>\n");
+              gen("#include <stdio.h>\n\n");
+              gen("int main()\n");
             }
             inicio_de_bloque {insertarMarca(); }
 
-inicio_de_bloque : LLAVEIZQ bloque  {}
+inicio_de_bloque : LLAVEIZQ {gen("{\n");} bloque  
 
 bloque : declar_de_variable_locales bloque
         | declar_de_fun bloque
         | sentencia bloque
-        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;}
+        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n");}
         ;
     
 
 
-declar_de_variable_locales :  TIPO  declaracion_v PYC               
+declar_de_variable_locales :  TIPO  declaracion_v PYC    {gen("%s %s;\n", tipoIntermedio(tipoTmp), $2.codigo);}           
 		| error IDEN
 		| error PYC {yyerrok;}
 		;
                 
-declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDIM);}
-                | IDEN COMA declaracion_v  {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM);}
-                | IDEN ASIG expresion     {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM); }
+declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDIM); strcpy($$.codigo, $1.lexema);}
+                | IDEN COMA declaracion_v  {tipoTmp = $0.atrib;insertarVariable($1.lexema, NONEDIM); sprintf($$.codigo, "%s, %s", $1.lexema, $3.codigo);}
+                | IDEN ASIG expresion     {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDIM); sprintf($$.codigo, "%s = %s", $1.lexema, $3.codigo);}
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;} argumentos {insertarMarca();} PARDER inicio_de_bloque {}
+declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;gen("%s %s (",tipoIntermedio($1.atrib), $3.lexema );} argumentos {insertarMarca();gen("%s)", $5.codigo);} PARDER inicio_de_bloque 
                 ;
 
 sentencias :  sentencias sentencia 
@@ -838,11 +839,11 @@ sentencia_salida : SALIDA PARIZQ lista_salida PARDER PYC ;
 
 sentencia_for : CONDFOR PARIZQ  sentencia_asignacion PYC expresion PYC sentencia_asignacion PARDER LLAVEIZQ sentencias LLAVEDER   {isBooleana($5.tipo);} 
 
-sentencia_return : DEVOLVER IDEN PYC                {$2.tipo = buscarID($2.lexema); comprobarDevolver($2.tipo); }
-                | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo);}
+sentencia_return : DEVOLVER IDEN PYC                {$2.tipo = buscarID($2.lexema); comprobarDevolver($2.tipo); gen("return %s;\n", $2.lexema);}
+                | DEVOLVER CONS PYC                 {$2.tipo = tipoCons($2.lexema); comprobarDevolver($2.tipo); gen("return %s;\n", $2.lexema);}
                 ;
 
-llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER PYC   {erroresArgs();}
+llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER PYC   {erroresArgs(); gen("llamada fun");}
 
 lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion
@@ -852,8 +853,8 @@ cadena_expresion : expresion
                 | CADENA
                 ;
 
-argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);}
-            | TIPO IDEN                                               {insertarParametro($1.atrib, $2.lexema);}
+argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);sprintf($$.codigo, "%s %s, %s", tipoIntermedio($1.atrib), $2.lexema, $4.codigo);}
+            | TIPO IDEN                                               {insertarParametro($1.atrib, $2.lexema);sprintf($$.codigo, "%s %s", tipoIntermedio($1.atrib), $2.lexema);}
             | error
             ;
           
@@ -864,14 +865,14 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
 
 
 
-expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);strcpy($$.codigo, leerOp($1.tipo, $1.lexema, $2.lexema, $3.lexema, $3.tipo));}
-            | IDEN                                                    {$$.tipo = $1.tipo;strcpy($$.codigo, $1.codigo);} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
-            | CONS                                                    {$$.tipo = tipoCons($1.lexema); strcpy($$.lexema, leerCte($1.lexema, $1.dtipo));}
-            | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
+expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); leerOp($1.tipo, $1.lexema, $2.lexema, $3.lexema, $3.tipo);}
+            | IDEN                                                    {$$.tipo = buscarID($1.lexema); strcpy($$.codigo, $1.lexema);} 
+            | CONS                                                    {$$.tipo = tipoCons($1.lexema); strcpy($$.codigo, leerCte($1.lexema, $1.tipo));}
+            | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);strcpy($$.codigo, leerCte($1.lexema, $1.tipo));}
             | PARIZQ expresion PARDER                                 {strcpy($$.codigo, $2.codigo); $$.tipo = $2.tipo;}
             | OPERADORUNARIO expresion                                {opUnarioAplicable($2.tipo);}
             | expresion MENOS expresion
-            | llamada_func                                            {strcpy($$.lexema = $1.lexema); $$.dtipo = $1.dtipo;}
+            | llamada_func                                            {strcpy($$.lexema, $1.lexema); $$.tipo = $1.tipo;}
             | iden_lista
             | error
             ;

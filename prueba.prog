@@ -1,7 +1,12 @@
 principal{
 
-    ent e1;
+    ent e2, e1 = 2;
 
+    ent funcionC(ent e3, car c, ent aa){
+        real ff;
+    devolver e3;
+    }
+    car c4='p';
     devolver 0;
 }
 
