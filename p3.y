@@ -29,6 +29,7 @@ typedef enum {
       funcion, /* si es subprograma */
       variable, /* si es variable */
       parametro_formal, /* si es parametro formal */
+      descriptor,
 } tEntrada ;
 
 // Para bucles if
@@ -78,6 +79,8 @@ typedef struct {
       int atrib ; /* Atributo del símbolo (si tiene) */
       char *  lexema ; /* Nombre del lexema */
       tSimbolo tipo ; /* Tipo del símbolo */
+      char codigo[500];
+      char valor[100];
 } atributos ;
 
 
@@ -225,14 +228,15 @@ void idRepetida(char* id) {
   }
 }
 
-void insertarEntrada(tEntrada te, char* nombre, tSimbolo tipo_dato, int nParam, int dimension) {
+void insertarEntrada(tEntrada te, char* nombre, tSimbolo tipo_dato, int nParam, int dimension, DescriptorDeInstrControl* descp) {
   // Hacemos la entrada
   entradaTS entrada = {
     te,
     strdup(nombre),
     tipo_dato,
     nParam,
-    dimension
+    dimension,
+    descp
   };
 
   // Si la tabla está llena da error
@@ -307,7 +311,7 @@ void insertarVariable(char* id, int dimension) {
 void insertarFuncion(tSimbolo tipoDato, char* id) {
   // Comprobamos que el id no esté usado ya
   idRepetida(id);
-  insertarEntrada(funcion, id, tipoDato, 0, -1);
+  insertarEntrada(funcion, id, tipoDato, 0, -1, NULL);
 }
 
 void insertarParametro(tSimbolo tipoDato, char* id) {
@@ -334,7 +338,7 @@ void insertarDescriptor(char* etqEntrada, char* etqSalida, char* etqElse) {
   descp->etiquetaEntrada = strdup(etqEntrada);
   descp->etiquetaSalida = strdup(etqSalida);
   descp->etiquetaElse = strdup(etqElse);
-  insertarEntrada(descriptor, " ", -1, -1, NULL, descp);
+  insertarEntrada(descriptor, " ", -1, -1, -1, descp);
 }
 
 tSimbolo buscarID(char* id) {
@@ -615,7 +619,7 @@ char* tipoIntermedio(tSimbolo td) {
 
 char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
   char* etiqueta = temporal();
-  tSimbolo tdPrimario = ts1;
+  tSimbolo tsPrimario = ts1;
   char* expPrimaria = exp1;
   char* expSecundaria = exp2;
   if (esLista(ts2) && (!strcmp("+", op) || !strcmp("*", op))) {
@@ -624,14 +628,14 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     expSecundaria = exp1;
   }
 
-  gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
+  /*gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
 
   if (!strcmp("#", op)) {
     gen("%s = getTam(%s);\n", etiqueta, exp1);
   } else if (!strcmp("?", op)) {
-    gen("%s = *(%s*)getActual(%s);\n", etiqueta, tipoIntermedio(tipoLista(td1)), exp1);
+    gen("%s = *(%s*)getActual(%s);\n", etiqueta, tipoIntermedio(aTipoLista(ts1)), exp1);
   } else if (!strcmp("@", op)) {
-    gen("%s = *(%s*)get(%s, %s);\n", etiqueta, tipoIntermedio(tipoLista(td1)), exp1, exp2);
+    gen("%s = *(%s*)get(%s, %s);\n", etiqueta, tipoIntermedio(aTipoLista(ts1)), exp1, exp2);
   } else if (!strcmp("--", op)) {
     gen("%s = borrarEn(%s, %s);\n", etiqueta, exp1, exp2);
   } else if (!strcmp("%", op)) {
@@ -640,7 +644,7 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     gen("%s = concatenar(%s, %s);\n", etiqueta, exp1, exp2);
   } else if (esLista(tsPrimario)) {
     if (!strcmp("+", op)) {
-      gen("%s = sumarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria)
+      gen("%s = sumarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
     } else if (!strcmp("-", op)) {
         gen("%s = restarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
     } else if (!strcmp("*", op)) {
@@ -652,7 +656,7 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     gen("%s = %s %s;\n", etiqueta, op, exp1);
   } else {
     gen("%s = %s %s %s;\n", etiqueta, exp1, op, exp2);
-  }
+  }*/
   return etiqueta;
 }
 
@@ -694,7 +698,7 @@ char* tipoImprimir(tSimbolo tipo) {
     return "%d";
   else if (tipo == real)
     return "%f";
-  else if (esLista(tipo) || tipo == booleano || tipo == cadena)
+  else if (esLista(tipo) || tipo == booleano )
     return "%s";
   else if (tipo == caracter)
     return "%c";
@@ -767,7 +771,11 @@ Lista Preferencias
 //Solo se acepta un argumento en la funcion
 
 %%
-programa : PRINCIPAL inicio_de_bloque {insertarMarca(); }
+programa : PRINCIPAL {
+              /*gen("#include <stdlib.h>\n");
+              gen("#include <stdio.h>\n\n");*/
+            }
+            inicio_de_bloque {insertarMarca(); }
 
 inicio_de_bloque : LLAVEIZQ bloque  {}
 
