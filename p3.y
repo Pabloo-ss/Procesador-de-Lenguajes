@@ -798,7 +798,7 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n", $1.lexema, $3.codigo);}
+sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n}", $1.lexema, $3.codigo);}
                       | iden_lista ASIG expresiones PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
@@ -846,7 +846,7 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
             | 
             ;
 
-expresiones : expresiones {gen("{\n"); ++deep; } expresion { --deep; gen("}\n"); sprintf($$.codigo, "%s %s", $1.codigo, $3.codigo);}
+expresiones : expresiones {gen("\n{\n"); ++deep; } expresion { --deep;  strcpy($$.codigo, $3.codigo);}
             | 
             ;
 

@@ -6,10 +6,10 @@ principal{
         real ff;
     devolver e3;
     }
-    car c4='p';
+    car c4 = 'p';
 
     e2 = 5 * 2 + 3 * 4;
-
+    e1 = 40 + 3 * e2;
     devolver 0;
 }
 
