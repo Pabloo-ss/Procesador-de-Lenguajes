@@ -3,12 +3,12 @@ principal {
   ent n, curr;
     
 
-    salida("i");
+    salida("introduce");
     entrada(n);
     salida(" ", n, " == ");
     curr = 2;
 
-    mientras ( curr < n ) {
+    mientras ( curr <= n ) {
 
       ent d;
       d = n / curr;

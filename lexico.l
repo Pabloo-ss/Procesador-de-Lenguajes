@@ -19,11 +19,11 @@ otros	[\n\t ]
 "salida"					                                {return SALIDA;}
 "devolver"					                                {return DEVOLVER;}
 "principal"					                                {return PRINCIPAL;}
-\"[^\"]*\"					                                {return CADENA;}
+\"[^\"]*\"					                                {yylval.lexema = strdup(yytext); yylval.tipo = cadena; return CADENA; }
 ","						                                    {return COMA;}
 "-"						                                    {return MENOS;}
 
-"*"|"/"|"or"|"and"|"xor"|"=="|"<"|">"|"+"	                {int a = -1;
+"*"|"/"|"or"|"and"|"xor"|"=="|"<"|">"|"+"|"<="|">="                {int a = -1;
                                                                 switch(*yytext){
                                                                     case '*': a = 0; break;
                                                                     case '/': a = 1; break;
@@ -34,6 +34,8 @@ otros	[\n\t ]
                                                                     case '<': a = 6; break;
                                                                     case '>': a = 7; break;
                                                                     case '+': a = 8; break;
+                                                                    case '<=': a = 9; break;
+                                                                    case '>=': a = 10; break;
                                                                 }
                                                                 yylval.atrib = a; yylval.lexema = strdup(yytext);return OPERADORBIN;}
 

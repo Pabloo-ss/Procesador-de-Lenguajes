@@ -52,7 +52,8 @@ typedef enum {
       listaReal,
       listaCaracter,
       listaBooleano,
-      error
+      error,
+      cadena
 } tSimbolo ;// tSimbolo indica el tipo de la variable
 
 typedef struct {
@@ -111,8 +112,10 @@ char* tipoAString(tSimbolo tipo_dato) {
       return "list bool";
     case error:
       return "error";
+    case cadena:
+      return "cadena";
     default:
-      fprintf(stderr, "Error en tipoAString(), no se conoce el tipo dato\n");
+      fprintf(stderr, "Error en tipoAString(), no se conoce el tipo dato%i\n",tipo_dato);
       exit(EXIT_FAILURE);
   }
 }
@@ -367,7 +370,8 @@ void comprobarAsignacion(char* id, tSimbolo ts) {
         }
       }else{
         if (ts == error || ts != TS[i].tipoDato) {
-          sprintf(msgError, "ERROR SEMANTICO2: asignación incorrecta, %s es tipo %s y se obtuvo %s\n", id, tipoAString(TS[i].tipoDato), tipoAString(ts));
+          sprintf(msgError, "ERROR SEMANTICO2: asignación incorrecta, %s es tipo %s y se obtuvo %s\n",
+           id, tipoAString(TS[i].tipoDato), tipoAString(ts));
           yyerror(msgError);
         }
       }
@@ -504,7 +508,23 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       yyerror(msgError); 
       return error; 
       } 
-    break; 
+    break;
+    case 9:// <=
+     if(!((ts1 == entero && ts2 == entero)|| (ts1 == real && ts2 == real))){
+        sprintf(msgError, "ERROR SEMANTICO: operador >= no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error;
+      }
+      return booleano;
+    break;
+    case 10:// >= 
+     if(!((ts1 == entero && ts2 == entero)|| (ts1 == real && ts2 == real))){
+        sprintf(msgError, "ERROR SEMANTICO: operador <= no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error;
+      }
+      return booleano;
+    break;   
     
   } 
 }
@@ -678,7 +698,7 @@ char* tipoImprimir(tSimbolo tipo) {
     return "%d";
   else if (tipo == real)
     return "%f";
-  else if (esLista(tipo) || tipo == booleano )
+  else if (esLista(tipo) || tipo == booleano || tipo == cadena)
     return "%s";
   else if (tipo == caracter)
     return "%c";
@@ -762,7 +782,7 @@ inicio_de_bloque : LLAVEIZQ {gen("{\n");} bloque
 
 bloque : declar_de_variable_locales bloque
         | declar_de_fun bloque
-        | sentencia bloque
+        | sentencia bloque 
         | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n");}
         ;
     
@@ -808,7 +828,7 @@ sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarA
 sentencia_if : CONDIF { insertarDescriptor("", etiqueta(), etiqueta());}
               expresion {
                 isBooleana($3.tipo); 
-                gen("%s (!%s) goto %s;\n", $1.lexema, $3.codigo, TS[TOPE].descriptor->etiquetaElse);
+                gen("if (!%s) goto %s;\n", $3.codigo, TS[TOPE].descriptor->etiquetaElse);
                 gen("{\n"); 
                 ++deep;}
               LLAVEIZQ sentencias {
@@ -823,8 +843,8 @@ sentencia_if : CONDIF { insertarDescriptor("", etiqueta(), etiqueta());}
                     --TOPE;
                   };                                        
 bloque_else : CONDELSE LLAVEIZQ{ gen("\n"); gen("{\n"); ++deep; }
-                sentencias 
-                LLAVEDER{ --deep; gen("}\n"); }
+                sentencias { --deep; gen("}\n"); }
+                LLAVEDER
             | { int aux = deep; deep = 0; gen(" {}\n"); deep = aux; } ;
 ;
 
@@ -897,7 +917,7 @@ cadena_expresion : expresion {
                       strcpy($$.lexema, $1.lexema);
                     $$.tipo = $1.tipo;
                   }
-                | CADENA { strcpy($$.lexema, $1.lexema); $$.tipo = $1.tipo;}
+                | CADENA { strcpy($$.lexema, $1.lexema); $$.tipo = 9;}
                 ;
 
 argumentos : TIPO IDEN COMA argumentos                                {insertarParametro($1.atrib, $2.lexema);sprintf($$.codigo, "%s %s, %s", tipoIntermedio($1.atrib), $2.lexema, $4.codigo);}
@@ -910,7 +930,7 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
             | 
             ;
 
-expresiones : expresiones {gen("\n{\n"); ++deep; } expresion { --deep;  strcpy($$.codigo, $3.codigo);}
+expresiones : expresiones {gen("\n{\n"); ++deep; } expresion { --deep;  strcpy($$.codigo, $3.codigo);$$.tipo=$3.tipo;}
             | 
             ;
 
