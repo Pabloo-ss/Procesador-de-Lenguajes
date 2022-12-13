@@ -9,6 +9,8 @@ TODO Falla en los operadores, al realizar la operacion no se puede devolver ente
 #include <stdio.h>
 #include <string.h>
 
+FILE* yyout;
+
 void yyerror( const char * msg );
 
 #define YYERROR_VERBOSE
@@ -591,8 +593,10 @@ tSimbolo tipoOp(tSimbolo ts, char * op) {
 int hayError = 0;
 int deep = 0;
 FILE * fMain;
-FILE * fFunc;
 
+
+#define addTab() { for (int i = 0; i < deep - (yyout != fMain); ++i) fprintf(yyout, "\t"); }
+#define gen(f_, ...) { if (!hayError) {addTab(); fprintf(yyout, f_, ##__VA_ARGS__); fflush(yyout);} }
 
 char* temporal() {
   static int indice = 1;
@@ -628,7 +632,7 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     expSecundaria = exp1;
   }
 
-  /*gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
+  gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
 
   if (!strcmp("#", op)) {
     gen("%s = getTam(%s);\n", etiqueta, exp1);
@@ -656,7 +660,7 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     gen("%s = %s %s;\n", etiqueta, op, exp1);
   } else {
     gen("%s = %s %s %s;\n", etiqueta, exp1, op, exp2);
-  }*/
+  }
   return etiqueta;
 }
 
@@ -772,8 +776,8 @@ Lista Preferencias
 
 %%
 programa : PRINCIPAL {
-              /*gen("#include <stdlib.h>\n");
-              gen("#include <stdio.h>\n\n");*/
+              gen("#include <stdlib.h>\n");
+              gen("#include <stdio.h>\n");
             }
             inicio_de_bloque {insertarMarca(); }
 
@@ -915,7 +919,12 @@ void yyerror(const char *msg){
 }
 
 int main(){
+  fMain = fopen("prog.c", "w");
+
+  yyout = fMain ;
   yyparse();
+
+  fclose(fMain);
 
   return 0;
 }
