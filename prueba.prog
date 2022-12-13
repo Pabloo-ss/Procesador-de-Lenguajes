@@ -7,6 +7,9 @@ principal{
     devolver e3;
     }
     car c4='p';
+
+    e2 = 5 * 2 + 3 * 4;
+
     devolver 0;
 }
 

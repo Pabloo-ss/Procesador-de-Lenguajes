@@ -35,7 +35,7 @@ otros	[\n\t ]
                                                                     case '>': a = 7; break;
                                                                     case '+': a = 8; break;
                                                                 }
-                                                                yylval.atrib = a;return OPERADORBIN;}
+                                                                yylval.atrib = a; yylval.lexema = strdup(yytext);return OPERADORBIN;}
 
 "not" 						                                {return OPERADORUNARIO;}
 

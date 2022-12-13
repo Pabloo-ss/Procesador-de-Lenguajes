@@ -73,6 +73,7 @@ long int TOPE=0 ; /* Tope de la pila */
 unsigned int Subprog = 0 ; /* Indicador de comienzo de bloque de un Subprog */
 int numArgs[2] = {0,0};
 int numArgs_llevados =0;
+int dentro_expresion = 0;
 int error_args=0;
 entradaTS TS[MAX_TS] ; /* Pila de la tabla de símbolos */
 tSimbolo tipoTmp; // Tipo auxiliar para declaración de variables
@@ -621,7 +622,7 @@ char* tipoIntermedio(tSimbolo ts) {
     return tipoAString(ts);
 }
 
-char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
+char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) { //crea la variable temporal en gen()
   char* etiqueta = temporal();
   tSimbolo tsPrimario = ts1;
   char* expPrimaria = exp1;
@@ -632,35 +633,10 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     expSecundaria = exp1;
   }*/
 
-  gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
+  gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta); //crea la variable tempor
+  gen("%s = %s %s %s; \n", etiqueta, exp1, op, exp2 )
 
-  /*if (!strcmp("#", op)) {
-    gen("%s = getTam(%s);\n", etiqueta, exp1);
-  } else if (!strcmp("?", op)) {
-    gen("%s = *(%s*)getActual(%s);\n", etiqueta, tipoIntermedio(aTipoLista(ts1)), exp1);
-  } else if (!strcmp("@", op)) {
-    gen("%s = *(%s*)get(%s, %s);\n", etiqueta, tipoIntermedio(aTipoLista(ts1)), exp1, exp2);
-  } else if (!strcmp("--", op)) {
-    gen("%s = borrarEn(%s, %s);\n", etiqueta, exp1, exp2);
-  } else if (!strcmp("%", op)) {
-    gen("%s = borrarAPartirDe(%s, %s);\n", etiqueta, exp1, exp2);
-  } else if (!strcmp("**", op)) {
-    gen("%s = concatenar(%s, %s);\n", etiqueta, exp1, exp2);
-  } else if (esLista(tsPrimario)) {
-    if (!strcmp("+", op)) {
-      gen("%s = sumarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
-    } else if (!strcmp("-", op)) {
-        gen("%s = restarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
-    } else if (!strcmp("*", op)) {
-      gen("%s = multiplicarLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
-    } else if (!strcmp("/", op)) {
-      gen("%s = dividirLista(%s, %s);\n", etiqueta, expPrimaria, expSecundaria);
-    }
-  } else if (!strcmp("", exp2)) {
-    gen("%s = %s %s;\n", etiqueta, op, exp1);
-  } else {
-    gen("%s = %s %s %s;\n", etiqueta, exp1, op, exp2);
-  }*/ 
+  
   return etiqueta;
 }
 
@@ -805,7 +781,7 @@ declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDI
 declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;gen("%s %s (",tipoIntermedio($1.atrib), $3.lexema );} argumentos {insertarMarca();gen("%s)", $5.codigo);} PARDER inicio_de_bloque 
                 ;
 
-sentencias :  sentencias sentencia 
+sentencias :  sentencias {gen("{\n"); ++deep; } sentencia { --deep; gen("}\n"); }
             | 
             ;
 
@@ -822,12 +798,19 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresion PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n", $1.lexema, $3.lexema);}
-                      | iden_lista ASIG expresion PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
+sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n", $1.lexema, $3.codigo);}
+                      | iden_lista ASIG expresiones PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
+/*
+sentencia_if : CONDIF { insertarDescriptor("", etiqueta(), etiqueta());}
+              expresion {isBooleana($3.tipo); gen("%s (!%s) goto %s;\n", $1.lexema, $3.codigo, TS[TOPE].descriptor->etiquetaElse);gen("{\n"); ++deep;}
+              LLAVEIZQ sentencias {{--deep; gen("}\n");} DescriptorDeInstrControl* ds = TS[TOPE].descriptor; gen("goto %s;\n\n", ds->etiquetaSalida);gen("%s:", ds->etiquetaElse);}
+              LLAVEDER                                          
+            | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
+            ;*/
 
-sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER                                          {isBooleana($2.tipo);}
+sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER {isBooleana($2.tipo);}                                                
             | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
             ;
 
@@ -849,7 +832,7 @@ lista_salida : lista_salida COMA cadena_expresion
             | cadena_expresion
             ;
 
-cadena_expresion : expresion
+cadena_expresion : expresion 
                 | CADENA
                 ;
 
@@ -863,9 +846,12 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
             | 
             ;
 
+expresiones : expresiones {gen("{\n"); ++deep; } expresion { --deep; gen("}\n"); sprintf($$.codigo, "%s %s", $1.codigo, $3.codigo);}
+            | 
+            ;
 
-
-expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); leerOp($1.tipo, $1.lexema, $2.lexema, $3.lexema, $3.tipo);}
+expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);
+  /*sprintf($$.codigo, "%s %s %s", $1.codigo, $2.lexema, $3.codigo);*/}
             | IDEN                                                    {$$.tipo = buscarID($1.lexema); strcpy($$.codigo, $1.lexema);} 
             | CONS                                                    {$$.tipo = tipoCons($1.lexema); strcpy($$.codigo, leerCte($1.lexema, $1.tipo));}
             | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);strcpy($$.codigo, leerCte($1.lexema, $1.tipo));}
