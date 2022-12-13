@@ -23,7 +23,11 @@ otros	[\n\t ]
 ","						                                    {return COMA;}
 "-"						                                    {return MENOS;}
 
-"*"|"/"|"or"|"and"|"xor"|"=="|"<"|">"|"+"|"<="|">="                {int a = -1;
+"<"                                                 {yylval.atrib = 6; yylval.lexema = strdup(yytext);return OPERADORBIN;}
+"<="                                                {yylval.atrib = 9; yylval.lexema = strdup(yytext);return OPERADORBIN;}
+">="                                               {yylval.atrib = 10; yylval.lexema = strdup(yytext);return OPERADORBIN;}
+"!="                                               {yylval.atrib = 11; yylval.lexema = strdup(yytext);return OPERADORBIN;}
+"*"|"/"|"or"|"and"|"xor"|"=="|">"|"+"              {int a = -1;
                                                                 switch(*yytext){
                                                                     case '*': a = 0; break;
                                                                     case '/': a = 1; break;
@@ -31,16 +35,13 @@ otros	[\n\t ]
                                                                     case 'a': a = 3; break;
                                                                     case 'x': a = 4; break;
                                                                     case '=': a = 5; break;
-                                                                    case '<': a = 6; break;
                                                                     case '>': a = 7; break;
                                                                     case '+': a = 8; break;
-                                                                    case '<=': a = 9; break;
-                                                                    case '>=': a = 10; break;
+                                                                    
                                                                 }
                                                                 yylval.atrib = a; yylval.lexema = strdup(yytext);return OPERADORBIN;}
 
 "not" 						                                {return OPERADORUNARIO;}
-
 "ent"|"car"|"real"|"booleano"			                    {int a = -1;
                                                                 switch(*yytext){
                                                                     case 'e': a = 0; break;

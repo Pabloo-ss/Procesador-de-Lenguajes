@@ -525,7 +525,14 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       }
       return booleano;
     break;   
-    
+    case 11:// >= 
+     if(!((ts1 == entero && ts2 == entero)|| (ts1 == real && ts2 == real))){
+        sprintf(msgError, "ERROR SEMANTICO: operador != no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+        yyerror(msgError); 
+        return error;
+      }
+      return booleano;
+    break;  
   } 
 }
 
@@ -602,7 +609,8 @@ tSimbolo tipoOp(tSimbolo ts, char * op) {
   if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/"))
     return ts;
 
-  if (!strcmp(op, "not") || !strcmp(op, "and") || !strcmp(op, "xor") || !strcmp(op, "or") || !strcmp(op, ">") || !strcmp(op, "<") || !strcmp(op, "=="))
+  if (!strcmp(op, "not") || !strcmp(op, "and") || !strcmp(op, "xor") || !strcmp(op, "or") || !strcmp(op, ">") || !strcmp(op, "<") || !strcmp(op, "==")
+  || !strcmp(op, "<=")|| !strcmp(op, ">=")|| !strcmp(op, "!="))
     return booleano;
 
 }
@@ -638,7 +646,8 @@ char* tipoIntermedio(tSimbolo ts) {
     return "Lista";
   else if (ts == booleano)
     return "int";
-  else
+  else 
+    
     return tipoAString(ts);
 }
 
@@ -652,7 +661,7 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) { //c
     expPrimaria = exp2;
     expSecundaria = exp1;
   }*/
-
+  
   gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta); //crea la variable tempor
   gen("%s = %s %s %s; \n", etiqueta, exp1, op, exp2 )
 

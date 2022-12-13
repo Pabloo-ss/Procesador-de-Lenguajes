@@ -1,25 +1,58 @@
-principal {
-  
-  ent n, curr;
-    
+principal 
+{
+  ent n, curr, ultim, cuenta, primero;
+  curr = 2;
+  ultim = 0;
+  cuenta = 0;
+  primero = 1;
 
-    salida("introduce");
-    entrada(n);
-    salida(" ", n, " == ");
-    curr = 2;
+  salida ("introduce numero: ");
+  entrada (n);
+  salida (n, " == ");
+  curr = 2;
+  mientras ( curr <= n ) {
+    ent d;
+    d = n / curr;
+    si ( d * curr == n){
+      si ( curr != ultim ){
+        ultim = curr;
+        cuenta = 1;
+      }
+      sino{
+        cuenta = cuenta + 1;
 
-    mientras ( curr <= n ) {
+      }
 
-      ent d;
-      d = n / curr;
-      si d * curr == n {
-        salida("* ", curr, " ");
-        n = n / curr;
-      }sino{
-        curr = curr+1;
-      } 
-    
+      n = n/curr;
     }
-    salida("\n");
+    sino{
+      si ( cuenta > 0 ){
+        si ( primero == 0 ) {
+          salida (" *");
+        }
+        primero = 0;
+        salida (" ", curr);
+        si ( cuenta > 1 ) {
+          salida ("^", cuenta) ;
+        }
+      }
+
+      curr = curr+1;
+      cuenta = 0;
+    }
+  }
+  si ( cuenta > 0 ){
+    si (primero == 0) {
+      salida (" *");
+    }
+    primero = 0;
+    salida( " ", curr);
+    si (cuenta > 1){
+      salida ("^ ", cuenta);
+      
+    } 
+  }
+
+  salida("\n");
   devolver 0;
 }
