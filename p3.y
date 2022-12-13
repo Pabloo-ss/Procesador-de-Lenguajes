@@ -626,15 +626,15 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
   tSimbolo tsPrimario = ts1;
   char* expPrimaria = exp1;
   char* expSecundaria = exp2;
-  if (esLista(ts2) && (!strcmp("+", op) || !strcmp("*", op))) {
+  /*if (esLista(ts2) && (!strcmp("+", op) || !strcmp("*", op))) {
     tsPrimario = ts2;
     expPrimaria = exp2;
     expSecundaria = exp1;
-  }
+  }*/
 
   gen("%s %s;\n", tipoIntermedio(tipoOp(tsPrimario, op)), etiqueta);
 
-  if (!strcmp("#", op)) {
+  /*if (!strcmp("#", op)) {
     gen("%s = getTam(%s);\n", etiqueta, exp1);
   } else if (!strcmp("?", op)) {
     gen("%s = *(%s*)getActual(%s);\n", etiqueta, tipoIntermedio(aTipoLista(ts1)), exp1);
@@ -660,14 +660,14 @@ char* leerOp(tSimbolo ts1, char* exp1, char* op, char* exp2, tSimbolo ts2) {
     gen("%s = %s %s;\n", etiqueta, op, exp1);
   } else {
     gen("%s = %s %s %s;\n", etiqueta, exp1, op, exp2);
-  }
+  }*/ 
   return etiqueta;
 }
 
 
 char* leerCte(char* cte, tSimbolo ts) {
   if (ts == booleano) {
-    if (!strcmp("true", cte))
+    if (!strcmp("verdadero", cte))
       return "1";
     else
       return "0";
@@ -821,7 +821,7 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresion PYC                     {comprobarAsignacion($1.lexema, $3.tipo);}
+sentencia_asignacion : IDEN ASIG expresion PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n", $1.lexema, $3.lexema);}
                       | iden_lista ASIG expresion PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
@@ -864,14 +864,14 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
 
 
 
-expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);}
-            | IDEN                                                    {$$.tipo = $1.tipo;$$.lexema=$1.lexema;} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
-            | CONS                                                    {$$.tipo = tipoCons($1.lexema);}
+expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo);strcpy($$.codigo, leerOp($1.tipo, $1.lexema, $2.lexema, $3.lexema, $3.tipo));}
+            | IDEN                                                    {$$.tipo = $1.tipo;strcpy($$.codigo, $1.codigo);} //Aqunque salgan mas errores creo que aqui va tipo en vez de buscarEntrada()
+            | CONS                                                    {$$.tipo = tipoCons($1.lexema); strcpy($$.lexema, leerCte($1.lexema, $1.dtipo));}
             | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);}
-            | PARIZQ expresion PARDER
+            | PARIZQ expresion PARDER                                 {strcpy($$.codigo, $2.codigo); $$.tipo = $2.tipo;}
             | OPERADORUNARIO expresion                                {opUnarioAplicable($2.tipo);}
             | expresion MENOS expresion
-            | llamada_func
+            | llamada_func                                            {strcpy($$.lexema = $1.lexema); $$.dtipo = $1.dtipo;}
             | iden_lista
             | error
             ;
