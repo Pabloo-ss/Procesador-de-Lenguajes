@@ -804,17 +804,29 @@ sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarA
                       | iden_lista ASIG expresiones PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
-/*
-sentencia_if : CONDIF { insertarDescriptor("", etiqueta(), etiqueta());}
-              expresion {isBooleana($3.tipo); gen("%s (!%s) goto %s;\n", $1.lexema, $3.codigo, TS[TOPE].descriptor->etiquetaElse);gen("{\n"); ++deep;}
-              LLAVEIZQ sentencias {{--deep; gen("}\n");} DescriptorDeInstrControl* ds = TS[TOPE].descriptor; gen("goto %s;\n\n", ds->etiquetaSalida);gen("%s:", ds->etiquetaElse);}
-              LLAVEDER                                          
-            | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
-            ;*/
 
-sentencia_if : CONDIF expresion LLAVEIZQ sentencias LLAVEDER {isBooleana($2.tipo);}                                                
-            | CONDIF expresion LLAVEIZQ sentencias LLAVEDER CONDELSE LLAVEIZQ sentencias LLAVEDER     {isBooleana($2.tipo);}
-            ;
+sentencia_if : CONDIF { insertarDescriptor("", etiqueta(), etiqueta());}
+              expresion {
+                isBooleana($3.tipo); 
+                gen("%s (!%s) goto %s;\n", $1.lexema, $3.codigo, TS[TOPE].descriptor->etiquetaElse);
+                gen("{\n"); 
+                ++deep;}
+              LLAVEIZQ sentencias {
+                 --deep; 
+                 gen("}\n");
+                 DescriptorDeInstrControl* ds = TS[TOPE].descriptor; 
+                 gen("goto %s;\n\n", ds->etiquetaSalida);
+                 gen("%s:", ds->etiquetaElse);}
+              LLAVEDER  bloque_else {
+                    gen("\n");
+                    gen("%s: {} \n", TS[TOPE].descriptor->etiquetaSalida);
+                    --TOPE;
+                  };                                        
+bloque_else : CONDELSE LLAVEIZQ{ gen("\n"); gen("{\n"); ++deep; }
+                sentencias 
+                LLAVEDER{ --deep; gen("}\n"); }
+            | { int aux = deep; deep = 0; gen(" {}\n"); deep = aux; } ;
+;
 
 /************* WHILE *****************/
 

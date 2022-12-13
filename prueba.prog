@@ -12,6 +12,13 @@ principal {
 
       ent d;
       d = n / curr;
+      si d * curr == n {
+        salida("* ", curr, " ");
+        n = n / curr;
+      }sino{
+        curr = curr+1;
+      } 
+    
     }
     salida("\n");
   devolver 0;
