@@ -6,7 +6,7 @@ principal
   cuenta = 0;
   primero = 1;
 
-  salida ("introduce numero: ");
+  salida ("introduce un numero: ");
   entrada (n);
   salida (n, " == ");
   curr = 2;

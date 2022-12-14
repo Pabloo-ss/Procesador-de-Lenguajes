@@ -3,16 +3,16 @@ principal {
   ent n, curr;
     
 
-    salida("introduce");
+    salida("introduce un numero: ");
     entrada(n);
     salida(" ", n, " == ");
     curr = 2;
     
-    mientras ( curr < n ) {
+    mientras ( curr <= n ) {
 
       ent d;
       d = n / curr;
-      si d * curr == n {
+      si (d * curr == n) {
         salida("* ", curr, " ");
         n = n / curr;
       }sino{

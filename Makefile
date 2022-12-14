@@ -25,6 +25,11 @@ test_sintactico: todo
 	./trad < ./pruebaerrores.prog
 
 generacion1: todo
-	./trad < ./prueba.prog
+	./trad < ./gencodigo1.prog
 	gcc prog.c -o gencodigo1
 	./gencodigo1
+
+generacion2: todo
+	./trad < ./gencodigo2.prog
+	gcc prog.c -o gencodigo2
+	./gencodigo2
