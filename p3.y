@@ -793,6 +793,7 @@ programa : PRINCIPAL {
               gen("#include <stdlib.h>\n");
               gen("#include <stdio.h>\n\n");
               gen("int main()\n");
+              ++deep;
             }
             inicio_de_bloque {insertarMarca(); }
 
@@ -800,7 +801,7 @@ inicio_de_bloque : LLAVEIZQ {gen("{\n");} bloque
 
 bloque :  declar_de_fun bloque
         | sentencia bloque 
-        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n");}
+        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n");--deep;}
         ;
     
 
@@ -837,8 +838,8 @@ sentencia : sentencia_asignacion
 
 
 
-sentencia_asignacion : IDEN ASIG expresiones PYC                     {comprobarAsignacion($1.lexema, $3.tipo);gen("%s = %s;\n}\n", $1.lexema, $3.codigo);}
-                      | iden_lista ASIG expresiones PYC                 {comprobarAsignacion($1.lexema, $3.tipo);}
+sentencia_asignacion : IDEN ASIG {gen("\n{\n"); ++deep; } expresion PYC                     {--deep;comprobarAsignacion($1.lexema, $4.tipo);gen("%s = %s;\n}\n", $1.lexema, $4.codigo);}
+                      | iden_lista ASIG {gen("\n{\n"); ++deep; } expresion PYC                 {--deep;comprobarAsignacion($1.lexema, $3.tipo);}
                       ;                                            
 
 
@@ -947,9 +948,9 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
             | 
             ;
 
-expresiones : expresiones {gen("\n{\n"); ++deep; } expresion { --deep;  strcpy($$.codigo, $3.codigo);$$.tipo=$3.tipo;}
-            | 
-            ;
+/*expresiones : expresiones  expresion { --deep;  strcpy($$.codigo, $2.codigo);$$.tipo=$2.tipo;}
+            |  
+            ;*/
 
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);}
             | IDEN                                                    {$$.tipo = buscarID($1.lexema); strcpy($$.codigo, $1.lexema);} 
