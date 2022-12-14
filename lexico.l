@@ -21,7 +21,7 @@ otros	[\n\t ]
 "principal"					                                {return PRINCIPAL;}
 \"[^\"]*\"					                                {yylval.lexema = strdup(yytext); yylval.tipo = cadena; return CADENA; }
 ","						                                    {return COMA;}
-"-"						                                    {return MENOS;}
+"-"						                                    {yylval.atrib = 12; yylval.lexema = strdup(yytext);return MENOS;}
 
 "<"                                                 {yylval.atrib = 6; yylval.lexema = strdup(yytext);return OPERADORBIN;}
 "<="                                                {yylval.atrib = 9; yylval.lexema = strdup(yytext);return OPERADORBIN;}

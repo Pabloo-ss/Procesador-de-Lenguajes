@@ -533,6 +533,15 @@ tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) {
       }
       return booleano;
     break;  
+    case 12: // -
+      if(ts1 == entero && ts2 == entero) return entero; 
+      else if(ts1 == real && ts2 == real) return real; 
+      else{ 
+      sprintf(msgError, "ERROR SEMANTICO: operador - no aplicable a los tipos %s y %s\n",tipoAString(ts1), tipoAString(ts2)); 
+      yyerror(msgError); 
+      return error; 
+      } 
+    break;
   } 
 }
 
@@ -608,6 +617,7 @@ void erroresArgs(){
 tSimbolo tipoOp(tSimbolo ts, char * op) {
   if (!strcmp(op, "+") || !strcmp(op, "-") || !strcmp(op, "*") || !strcmp(op, "/"))
     return ts;
+    
 
   if (!strcmp(op, "not") || !strcmp(op, "and") || !strcmp(op, "xor") || !strcmp(op, "or") || !strcmp(op, ">") || !strcmp(op, "<") || !strcmp(op, "==")
   || !strcmp(op, "<=")|| !strcmp(op, ">=")|| !strcmp(op, "!="))
@@ -764,9 +774,8 @@ Lista Tokens
 /*
 Lista Preferencias
 */
-%left OPERADORBIN
+%left OPERADORBIN MENOS
 %right OPERADORUNARIO
-%left MENOS
 %right CONDFOR
 %right SALIDA
 %right ENTRADA
@@ -777,7 +786,7 @@ Lista Preferencias
 %left LLAVEDER
 %right LLAVEIZQ
 
-//Solo se acepta un argumento en la funcion
+
 
 %%
 programa : PRINCIPAL {
@@ -942,14 +951,13 @@ expresiones : expresiones {gen("\n{\n"); ++deep; } expresion { --deep;  strcpy($
             | 
             ;
 
-expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);
-  /*sprintf($$.codigo, "%s %s %s", $1.codigo, $2.lexema, $3.codigo);*/}
+expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);}
             | IDEN                                                    {$$.tipo = buscarID($1.lexema); strcpy($$.codigo, $1.lexema);} 
             | CONS                                                    {$$.tipo = tipoCons($1.lexema); strcpy($$.codigo, leerCte($1.lexema, $1.tipo));}
             | MENOS CONS                                              {$$.tipo = tipoCons($2.lexema); menosUnarioAplicable($2.tipo);strcpy($$.codigo, leerCte($1.lexema, $1.tipo));}
             | PARIZQ expresion PARDER                                 {strcpy($$.codigo, $2.codigo); $$.tipo = $2.tipo;}
             | OPERADORUNARIO expresion                                {opUnarioAplicable($2.tipo);}
-            | expresion MENOS expresion
+            | expresion MENOS expresion                               {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);}
             | llamada_func                                            {strcpy($$.lexema, $1.lexema); $$.tipo = $1.tipo;}
             | iden_lista
             | error
