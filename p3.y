@@ -1,9 +1,3 @@
-
-/*
-! ya lee todo el programa completo aunque falla al meter las cosas en la ts. Creo que si se arregla 
-! lo de abajo se arregla
-TODO Falla en los operadores, al realizar la operacion no se puede devolver entero o flotante unicamente hay que rehacer el metodo creo* 
-*/
 %{
 #include <stdlib.h>
 #include <stdio.h>
@@ -160,16 +154,9 @@ int esLista(tSimbolo tipo_dato){
   return tipo_dato == listaEntero || tipo_dato == listaReal || tipo_dato == listaBooleano || tipo_dato == listaCaracter;
 }
 
-int esNumero(tSimbolo tipo_dato){
-  return tipo_dato == entero || tipo_dato == real;
-}
 
 int esEntero(tSimbolo tipo_dato){
   return tipo_dato == entero;
-}
-
-int esReal(tSimbolo tipo_dato){
-  return tipo_dato == real;
 }
 
 
@@ -387,44 +374,7 @@ void isBooleana(tSimbolo ts) {
   }
 }
 
-tSimbolo andLog(tSimbolo ts1, tSimbolo ts2) {
-  if (ts1 == error || ts2 == error)
-    return error;
 
-  if (ts1 != booleano || ts2 != booleano) {
-    sprintf(msgError, "ERROR SEMANTICO: operador and no aplicable a los tipos %s, %s\n", tipoAString(ts1), tipoAString(ts2));
-    yyerror(msgError);
-    return error;
-  }
-
-  return booleano;
-}
-
-tSimbolo orLog(tSimbolo ts1, tSimbolo ts2) {
-  if (ts1 == error || ts2 == error)
-    return error;
-
-  if (ts1 != booleano || ts2 != booleano) {
-    sprintf(msgError, "ERROR SEMANTICO: operador or no aplicable a los tipos %s, %s\n",   tipoAString(ts1), tipoAString(ts2));
-    yyerror(msgError);
-    return error;
-  }
-
-  return booleano;
-}
-
-tSimbolo eq(tSimbolo ts1, tSimbolo ts2) {
-  if (ts1 == error || ts2 == error)
-    return error;
-
-  if (ts1 != ts2) {
-    sprintf(msgError, "ERROR SEMANTICO: operador == no aplicable a los tipos %s, %s\n", tipoAString(ts1), tipoAString(ts2));
-    yyerror(msgError);
-    return error;
-  }
-
-  return booleano;
-}
 tSimbolo opBinario(tSimbolo ts1, int atr, tSimbolo ts2) { 
   if (ts1 == error || ts2 == error) return error; 
 
@@ -690,27 +640,6 @@ char* leerCte(char* cte, tSimbolo ts) {
   return cte;
 }
 
-char* insertarDato(char* id, tSimbolo ts) {
-  char* buffer = malloc(sizeof(char) * 100);
-  switch (ts) {
-    case entero:
-    case booleano:
-      sprintf(buffer, "pInt(%s)", id);
-      return buffer;
-    case real:
-      sprintf(buffer, "pFloat(%s)", id);
-      return buffer;
-    case caracter:
-      sprintf(buffer, "pChar(%s)", id);
-      return buffer;
-    default:
-      if (!hayError) {
-        sprintf(msgError, "ERROR INTERMEDIO: tipo no básico en insertarDato().\n");
-        yyerror(msgError);
-        exit(EXIT_FAILURE);
-      }
-  }
-}
 
 char* tipoImprimir(tSimbolo tipo) {
   if (tipo == entero)
@@ -730,23 +659,6 @@ char* tipoImprimir(tSimbolo tipo) {
   }
 }
 
-char* inicializaTipoLista(tSimbolo tipo) {
-  if (tipo == entero)
-    return "tInt";
-  else if (tipo == real)
-    return "tFloat";
-  else if (tipo == caracter)
-    return "tChar";
-  else if (tipo == booleano)
-    return "tBool";
-  else {
-    if (!hayError) {
-      sprintf(msgError, "ERROR INTERMEDIO: tipo no válido en inicializaTipoLista().\n");
-      yyerror(msgError);
-      exit(EXIT_FAILURE);
-    }
-  }
-}
 
 
 #define YYSTYPE atributos /* Cada símbolo tiene una estructura de tipo atributos */
@@ -772,7 +684,7 @@ Lista Tokens
 %token CADENA
 %token PRINCIPAL DEVOLVER
 /*
-Lista Preferencias
+Lista Precedencias
 */
 %left OPERADORBIN MENOS
 %right OPERADORUNARIO
@@ -948,9 +860,6 @@ argumentosLlamada : expresion COMA argumentosLlamada                  {comprobar
             | 
             ;
 
-/*expresiones : expresiones  expresion { --deep;  strcpy($$.codigo, $2.codigo);$$.tipo=$2.tipo;}
-            |  
-            ;*/
 
 expresion    : expresion OPERADORBIN expresion                        {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);}
             | IDEN                                                    {$$.tipo = buscarID($1.lexema); strcpy($$.codigo, $1.lexema);} 
@@ -969,32 +878,11 @@ tipo_variable_complejo : TIPO LISTA CORIZQ CONS CORDER IDEN ASIG CORIZQ decl_tip
                                                                                                       
 iden_lista: IDEN CORIZQ CONS CORDER  {$$.tipo=aTipoLista($1.tipo);}
 
-/*decl_tipo_comp : decl_tipo_comp_ent
-            | decl_tipo_comp_real
-            | decl_tipo_comp_booleano
-            | decl_tipo_comp_lista
-            | %empty
-            ;*/
+
 
 decl_tipo_comp : CONS COMA decl_tipo_comp                         {$$.tipo = tipoCons($1.lexema);}
                   | CONS                                          {$$.tipo = tipoCons($1.lexema);}
                   ; 
-
-/*<decl_tipo_comp_real> ::= <real>, <decl_tipo_comp_real>
-                  |<real>
-<decl_tipo_comp_booleano> ::= <booleano>, <decl_tipo_comp_booleano>
-                  |<booleano>
-<decl_tipo_comp_car> ::= <caracter>, <decl_tipo_comp_car>
-                  |<caracter>
-<decl_tipo_comp_lista> ::= [<decl_tipo_comp>], <decl_tipo_comp_lista>
-                  |[<decl_tipo_comp_lista>]
-<constante> ::= <entero>
-            |<real>
-            |<booleano>
-            |<caracter>*/
-
-
-
 
 
 
