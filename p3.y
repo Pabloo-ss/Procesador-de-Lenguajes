@@ -789,8 +789,7 @@ programa : PRINCIPAL {
 
 inicio_de_bloque : LLAVEIZQ {gen("{\n");} bloque  
 
-bloque : declar_de_variable_locales bloque
-        | declar_de_fun bloque
+bloque :  declar_de_fun bloque
         | sentencia bloque 
         | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n");}
         ;
