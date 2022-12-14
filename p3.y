@@ -581,7 +581,9 @@ tSimbolo tipoOp(tSimbolo ts, char * op) {
 
 int hayError = 0;
 int deep = 0;
+int dirtyFun = 0;
 FILE * fMain;
+FILE * fFunc;
 
 
 #define addTab() { for (int i = 0; i < deep - (yyout != fMain); ++i) fprintf(yyout, "\t"); }
@@ -703,7 +705,8 @@ Lista Precedencias
 %%
 programa : PRINCIPAL {
               gen("#include <stdlib.h>\n");
-              gen("#include <stdio.h>\n\n");
+              gen("#include <stdio.h>\n");
+              gen("#include \"dec_fun.h\"\n\n");
               gen("int main()\n");
               ++deep;
             }
@@ -713,7 +716,7 @@ inicio_de_bloque : LLAVEIZQ {gen("{\n");} bloque
 
 bloque :  declar_de_fun bloque
         | sentencia bloque 
-        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n");--deep;}
+        | sentencia_return LLAVEDER  {vaciarEntradas(); Subprog = 0;gen("}\n"); dirtyFun--;--deep;if(dirtyFun == 0) yyout = fMain;}
         ;
     
 
@@ -728,9 +731,9 @@ declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDI
                 | IDEN ASIG expresion     {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDIM); sprintf($$.codigo, "%s = %s", $1.lexema, $3.codigo);}
                 ;
 
-declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;gen("%s %s (",tipoIntermedio($1.atrib), $3.lexema );} argumentos {insertarMarca();gen("%s)", $5.codigo);} PARDER inicio_de_bloque 
+declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;yyout = fFunc; dirtyFun++;gen("%s %s (",tipoIntermedio($1.atrib), $3.lexema );} argumentos {insertarMarca();gen("%s)", $5.codigo);} PARDER inicio_de_bloque 
                 ;
-llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER PYC   {erroresArgs(); gen("llamada fun");}
+llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER   {erroresArgs(); sprintf($$.codigo, "%s(%s)", $1.lexema ,$4.codigo);}
 
 sentencias :  sentencias  sentencia 
             | 
@@ -741,7 +744,7 @@ sentencia : sentencia_asignacion
             | sentencia_while
             | sentencia_entrada
             | sentencia_salida
-            | llamada_func 
+            | llamada_func PYC
             | sentencia_for
             | tipo_variable_complejo
             | sentencia_return
@@ -855,8 +858,8 @@ argumentos : TIPO IDEN COMA argumentos                                {insertarP
             | error
             ;
           
-argumentosLlamada : expresion COMA argumentosLlamada                  {comprobarArg($1.tipo);}
-            | expresion                                               {comprobarArg($1.tipo);}
+argumentosLlamada : expresion COMA argumentosLlamada                  {comprobarArg($1.tipo);sprintf($$.codigo, "%s, %s", $1.codigo, $3.codigo);}
+            | expresion                                               {comprobarArg($1.tipo);sprintf($$.codigo, "%s", $1.codigo);}
             | 
             ;
 
@@ -868,7 +871,7 @@ expresion    : expresion OPERADORBIN expresion                        {$$.tipo =
             | PARIZQ expresion PARDER                                 {strcpy($$.codigo, $2.codigo); $$.tipo = $2.tipo;}
             | OPERADORUNARIO expresion                                {opUnarioAplicable($2.tipo);}
             | expresion MENOS expresion                               {$$.tipo = opBinario($1.tipo, $2.atrib, $3.tipo); strcpy($$.codigo, leerOp($1.tipo,$1.lexema,$2.lexema,$3.lexema,$3.tipo)); strcpy($$.lexema, $$.codigo);}
-            | llamada_func                                            {strcpy($$.lexema, $1.lexema); $$.tipo = $1.tipo;}
+            | llamada_func                                            {strcpy($$.codigo, $1.codigo); $$.tipo = $1.tipo;}
             | iden_lista
             | error
             ;
@@ -896,11 +899,13 @@ void yyerror(const char *msg){
 
 int main(){
   fMain = fopen("prog.c", "w");
+  fFunc = fopen("dec_fun.h", "w");
 
   yyout = fMain ;
   yyparse();
 
   fclose(fMain);
+  fclose(fFunc);
 
   return 0;
 }

@@ -5,54 +5,19 @@ principal
   ultim = 0;
   cuenta = 0;
   primero = 2 - 1;
-
-  salida ("introduce numero: ");
-  entrada (n);
-  salida (n, " == ");
-  curr = 2;
-  mientras ( curr <= n ) {
-    ent d;
-    d = n / curr;
-    si ( d * curr == n){
-      si ( curr != ultim ){
-        ultim = curr;
-        cuenta = 1;
-      }
-      sino{
-        cuenta = cuenta + 1;
-
-      }
-
-      n = n/curr;
+  ent funcionA(ent ee, real rer){
+ 
+    real funcionDentro(real aa){
+      devolver aa;
     }
-    sino{
-      si ( cuenta > 0 ){
-        si ( primero == 0 ) {
-          salida (" *");
-        }
-        primero = 0;
-        salida (" ", curr);
-        si ( cuenta > 1 ) {
-          salida ("^", cuenta) ;
-        }
-      }
 
-      curr = curr+1;
-      cuenta = 0;
-    }
-  }
-  si ( cuenta > 0 ){
-    si (primero == 0) {
-      salida (" *");
-    }
-    primero = 0;
-    salida( " ", curr);
-    si (cuenta > 1){
-      salida ("^ ", cuenta);
-      
-    } 
+    devolver ee;
   }
 
-  salida("\n");
+  curr =  funcionA(2, 3.3);
+  
+  
+  
+
   devolver 0;
 }
