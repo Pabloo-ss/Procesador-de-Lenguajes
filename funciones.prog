@@ -1,29 +1,37 @@
 principal 
 {
-  ent n, curr, ultim, cuenta, primero;
-  curr = 2;
-  ultim = 0;
-  cuenta = 0;
-  primero = 2 - 1;
-  ent funcionA(ent ee, ent rer){
+  real a, b, resultado;
+
+  salida("Introduce tus numeros");
+  entrada(a);
+  entrada(b);
+
+  real max(real num1, real num2){
+    real maximo;
+    si(num1 >= num2){
+      maximo = num1;
+    }sino{
+      maximo = num2;
+    }
  
-    real funcionDentro(real aa){
-      devolver aa;
+    real min(real numero1, real numero2){
+      real minimo;
+      si(num1 <= num2){
+        minimo = num1;
+      }sino{
+        minimo = num2;
+      }
+      devolver minimo;
     }
     
-    devolver 32;
+    devolver maximo;
   }
+  a = b - a; 
+  resultado = max(a, b);
 
-  curr =  funcionA(2, 3) - 2;
-  curr = curr +42;
-  salida(curr);
+
+  salida(resultado);
   
-  real funcionR(ent e2){
-    real r1 = 4.6 +3.0;
-    devolver r1;
-  }
-  real r2 = funcionR(3);
-  salida(r2);
 
   devolver 0;
 }
