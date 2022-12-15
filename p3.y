@@ -733,7 +733,7 @@ declaracion_v :   IDEN   {tipoTmp = $0.atrib; insertarVariable($1.lexema, NONEDI
 
 declar_de_fun : TIPO IDEN PARIZQ {insertarFuncion($1.atrib, $2.lexema); Subprog = 1;yyout = fFunc; dirtyFun++;gen("%s %s (",tipoIntermedio($1.atrib), $3.lexema );} argumentos {insertarMarca();gen("%s)", $5.codigo);} PARDER inicio_de_bloque 
                 ;
-llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER   {erroresArgs(); sprintf($$.codigo, "%s(%s)", $1.lexema ,$4.codigo);}
+llamada_func : IDEN PARIZQ {numArgs[0] = numeroArg($1.lexema);numArgs[1] = buscarEntrada($1.lexema);} argumentosLlamada PARDER   {erroresArgs(); sprintf($$.codigo, "%s(%s)", $1.lexema ,$4.codigo);$$.tipo=buscarID($1.lexema);}
 
 sentencias :  sentencias  sentencia 
             | 
