@@ -7,26 +7,28 @@ principal
   entrada(b);
 
   real max(real num1, real num2){
-    real maximo;
-    si(num1 >= num2){
-      maximo = num1;
-    }sino{
-      maximo = num2;
-    }
+    real maximo, minrel;
  
     real min(real numero1, real numero2){
       real minimo;
       si(num1 <= num2){
-        minimo = num1;
+        minimo = numero1;
       }sino{
-        minimo = num2;
+        minimo = numero2;
       }
       devolver minimo;
+    }
+    minrel = min(num1, num2);
+
+    si(num1 >= minrel){
+      maximo = num1;
+    }sino{
+      maximo = num2;
     }
     
     devolver maximo;
   }
-  a = b - a; 
+
   resultado = max(a, b);
 
 

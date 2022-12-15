@@ -1,12 +1,14 @@
 float max (float num1, float num2){
-float maximo;
+float maximo, minrel;
+float min (float numero1, float numero2){
+float minimo;
 int temp1;
-temp1 = num1 >= num2; 
+temp1 = num1 <= num2; 
 if (!temp1) goto etiqueta1;
 {
 	
 {
-	maximo = num1;
+	minimo = numero1;
 }
 }
 goto etiqueta2;
@@ -15,34 +17,36 @@ etiqueta1:
 {
 	
 {
-	maximo = num2;
+	minimo = numero2;
 }
 }
 
 etiqueta2: {} 
-float min (float numero1, float numero2){
-float minimo;
+return minimo;
+}
+
+{
+minrel = min(num1, num2);
+}
 int temp2;
-temp2 = num1 <= num2; 
+temp2 = num1 >= minrel; 
 if (!temp2) goto etiqueta3;
 {
-	
+
 {
-	minimo = num1;
+maximo = num1;
 }
 }
 goto etiqueta4;
 
 etiqueta3:
 {
-	
+
 {
-	minimo = num2;
+maximo = num2;
 }
 }
 
 etiqueta4: {} 
-return minimo;
-}
 return maximo;
 }
