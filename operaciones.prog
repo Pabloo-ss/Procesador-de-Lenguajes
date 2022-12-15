@@ -1,0 +1,26 @@
+principal{
+    ent a,b, resultado;
+salida("Introduce el primer valor");
+entrada(a);
+salida("Introduce el segundo valor");
+entrada(b);
+
+salida("Suma");
+resultado = a+b;
+salida(resultado);
+
+
+salida("Resta");
+resultado = a-b;
+salida(resultado);
+
+salida("Multiplicacion");
+resultado = a*b;
+salida(resultado);
+
+salida("Division");
+resultado = a/b;
+salida(resultado);
+
+devolver 0;
+}

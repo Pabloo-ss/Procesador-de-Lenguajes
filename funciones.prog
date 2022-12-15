@@ -28,7 +28,7 @@ principal
   
     devolver maximo;
   }
-
+   
   resultado = max(a, b);
 
 

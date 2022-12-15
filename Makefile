@@ -38,3 +38,8 @@ generacion2: todo
 	./trad < ./gencodigo2.prog
 	gcc prog.c -o gencodigo2
 	./gencodigo2
+
+operaciones: todo
+	./trad < ./operaciones.prog
+	gcc prog.c -o operaciones
+	./operaciones
