@@ -24,6 +24,11 @@ test_programita: todo
 test_sintactico: todo
 	./trad < ./pruebaerrores.prog
 
+funciones: todo
+	./trad < ./funciones.prog
+	gcc prog.c -o funciones
+	./funciones
+
 generacion1: todo
 	./trad < ./gencodigo1.prog
 	gcc prog.c -o gencodigo1

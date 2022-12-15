@@ -5,22 +5,25 @@ principal
   ultim = 0;
   cuenta = 0;
   primero = 2 - 1;
-  ent funcionA(ent ee, real rer){
+  ent funcionA(ent ee, ent rer){
  
     real funcionDentro(real aa){
       devolver aa;
     }
-
-    devolver ee;
+    
+    devolver 32;
   }
 
-  curr =  funcionA(2, 3.3);
+  curr =  funcionA(2, 3) - 2;
+  curr = curr +42;
+  salida(curr);
   
-  real funcionR(){
+  real funcionR(ent e2){
     real r1 = 4.6 +3.0;
     devolver r1;
   }
-  
-  salida(funcionR);
+  real r2 = funcionR(3);
+  salida(r2);
+
   devolver 0;
 }
