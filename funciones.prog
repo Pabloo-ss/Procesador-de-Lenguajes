@@ -11,7 +11,7 @@ principal
  
     real min(real numero1, real numero2){
       real minimo;
-      si(num1 <= num2){
+      si(numero1 <= numero2){
         minimo = numero1;
       }sino{
         minimo = numero2;
@@ -20,12 +20,12 @@ principal
     }
     minrel = min(num1, num2);
 
-    si(num1 >= minrel){
+    si(num1 > minrel){
       maximo = num1;
     }sino{
       maximo = num2;
     }
-    
+  
     devolver maximo;
   }
 
